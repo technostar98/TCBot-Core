@@ -6,6 +6,7 @@ repositories {
 
 dependencies {
 	compile 'org.pircbotx:pircbotx:2.0.1'
+    compile 'mysql:mysql-connector-java:5.1.35'
 }
 
 task setup{
