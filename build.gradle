@@ -1,5 +1,8 @@
 apply plugin: 'java'
 
+version = "0.0.001" //MAJOR.MINOR.REVISION Possible going to change
+group = "com.technostar.tcbot"
+
 repositories {
 	mavenCentral()
 }
@@ -7,8 +10,4 @@ repositories {
 dependencies {
 	compile 'org.pircbotx:pircbotx:2.0.1'
     compile 'mysql:mysql-connector-java:5.1.35'
-}
-
-task setup{
-	dependencies
 }
