@@ -1,6 +1,9 @@
 apply plugin: 'java'
 
-version = "0.0.001" //MAJOR.MINOR.REVISION Possible going to change
+ext.buildnumber = 0
+project.buildnumber = System.getenv('BUILD_NUMBER') != null ? System.getenv('BUILD_NUMBER') : project.ext.gitHash
+
+version = "0.0.001.B-${buildnumber}"
 group = "com.technostar.tcbot"
 
 repositories {
