@@ -1,7 +1,7 @@
-import org.pircbotx.*;
+
+package com.technostar.tcbot;
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
-import org.pircbotx.hooks.*;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 
@@ -18,11 +18,15 @@ public class MyListener extends ListenerAdapter {
     }
 
     public static void main(String[] args) throws Exception {
-        Configuration configuration = new Configuration.Builder();
+        Configuration configuration = new Configuration.Builder()
                 .setName("TechnoBot")
                 .setServerHostname("irc.esper.net")
-                .addAutoJoinChannel("#thesixpack")
+                .addAutoJoinChannel("#TechnoDev")
                 .addListener(new MyListener())
+                .buildConfiguration();
+
+
+
 
         PircBotX bot = new PircBotX(configuration);
         bot.startBot();
