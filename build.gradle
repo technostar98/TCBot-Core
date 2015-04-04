@@ -1,7 +1,7 @@
 apply plugin: 'java'
 
 ext.buildnumber = 0
-project.buildnumber = System.getenv('BUILD_NUMBER') != null ? System.getenv('BUILD_NUMBER') : project.ext.gitHash
+project.buildnumber = System.getenv('BUILD_NUMBER') != null ? System.getenv('BUILD_NUMBER') : 0
 
 version = "0.0.001.B-${buildnumber}"
 group = "com.technostar.tcbot"
