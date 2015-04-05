@@ -1,7 +1,5 @@
 package com.technostar.tcbot.lib;
 
-import com.sun.istack.internal.Nullable;
-
 import java.util.Locale;
 
 /**
@@ -17,7 +15,7 @@ public class Timestamp implements Comparable<Timestamp>{
      * @param time Time in millis from start
      * @param locale Used for time transformations across locales
      */
-    public Timestamp(long time, @Nullable Locale locale){
+    public Timestamp(long time, Locale locale){
         this.hours = (int)(time / 3600000); time %= 3600000; //3600000 milliseconds in an hour
         this.minutes = (int)(time / 60000); time %= 60000; //60000 milliseconds in a minute
         this.seconds = (int)(time / 1000); time %= 1000; //1000 milliseconds in a second
