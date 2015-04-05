@@ -1,6 +1,10 @@
 package com.technostar.tcbot.bot;
 
+import com.technostar.tcbot.command.CommandType;
+import com.technostar.tcbot.lib.WrappedEvent;
 import org.pircbotx.PircBotX;
+import org.pircbotx.User;
+import org.pircbotx.hooks.events.MessageEvent;
 
 import java.util.HashMap;
 
@@ -29,8 +33,33 @@ public class MessengerPipeline {
         this.messagesPerSec = messagesPerSec;
     }
 
-    public void sendMessage(String channel, String message, PircBotX bot){
-        if(message != null && shouldMessageSend()) bot.sendIRC().message(channel, message);
+    public void sendMessage(String message, CommandType type, WrappedEvent<MessageEvent<PircBotX>> wrappedEvent){
+        if(message != null && wrappedEvent.getEvent().getChannel().getName() != null && (shouldMessageSend() ||
+                type == CommandType.LEAVE)) {
+            switch (type) {
+                case ACTION:
+                    wrappedEvent.getEvent().getBot().sendIRC().action(wrappedEvent.getEvent().getChannel().getName(), message);
+                    break;
+                case USER_MESSAGE:
+                    wrappedEvent.getEvent().getBot().sendIRC().message(wrappedEvent.getEvent().getChannel().getName(), message);
+                    break;
+                case LEAVE:
+                    wrappedEvent.getEvent().getChannel().send().part(message);
+                    break;
+                case KICK:
+                    wrappedEvent.getEvent().getChannel().send().kick(wrappedEvent.getEvent().getUser(), message);
+                    break;
+                case JOIN:
+                    wrappedEvent.getEvent().getBot().sendIRC().joinChannel(message);
+                    break;
+                case KICKED: //TODO Kicked command output?
+                    break;
+                case GENERIC: //TODO Generic command output?
+                    break;
+                default:
+                    System.out.println("Unknown type");
+            }
+        }
     }
 
     private boolean shouldMessageSend(){

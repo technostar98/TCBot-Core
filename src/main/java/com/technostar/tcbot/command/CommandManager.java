@@ -1,7 +1,6 @@
 package com.technostar.tcbot.command;
 
-import com.technostar.tcbot.command.Commands.BotQuitCommand;
-import com.technostar.tcbot.command.Commands.ShutdownCommand;
+import com.technostar.tcbot.command.Commands.*;
 import com.technostar.tcbot.lib.WrappedEvent;
 import org.pircbotx.PircBotX;
 import org.pircbotx.hooks.events.MessageEvent;
@@ -24,11 +23,20 @@ public class CommandManager {
         //TODO De-hard code command manager
         addCommand(new BotQuitCommand(server));
         addCommand(new ShutdownCommand(server));
+        addCommand(new JoinChannelCommand(server));
+        addCommand(new LeaveChannelCommand(server));
+        addCommand(new SlapCommand(server));
     }
 
     public List<Command> getCommands(String name){
         List<Command> matched = commands.parallelStream().filter(c -> c.getName().equals(name)).collect(Collectors.toList());
         if(!matched.isEmpty()) return matched;
+        else return null;
+    }
+
+    public Command getCommand(String name){
+        List<Command> commands = getCommands(name);
+        if(commands != null && !commands.isEmpty()) return commands.get(0);
         else return null;
     }
 

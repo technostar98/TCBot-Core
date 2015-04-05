@@ -46,7 +46,8 @@ public abstract class Command {
     }
 
     public boolean isUserAllowed(MessageEvent<PircBotX> event){
-        return event.getUser().getUserLevels(event.getChannel()).stream().anyMatch(ul -> requiredULs.contains(ul));
+        return requiredULs != null && !requiredULs.isEmpty()
+                && event.getUser().getUserLevels(event.getChannel()).stream().anyMatch(ul -> requiredULs.contains(ul));
     }
 
     public abstract String getMessage(WrappedEvent<MessageEvent<PircBotX>> event);

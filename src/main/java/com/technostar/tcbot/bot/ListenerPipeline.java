@@ -1,5 +1,6 @@
 package com.technostar.tcbot.bot;
 
+import com.technostar.tcbot.command.Command;
 import com.technostar.tcbot.command.CommandManager;
 import com.technostar.tcbot.command.CommandType;
 import com.technostar.tcbot.lib.WrappedEvent;
@@ -87,11 +88,13 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
 
     @Override
     public void onJoin(JoinEvent<PircBotX> event) throws Exception {
+        commandManagers.put(event.getChannel().getName(), new CommandManager(server, event.getChannel().getName()));
         super.onJoin(event);
     }
 
     @Override
     public void onKick(KickEvent<PircBotX> event) throws Exception {
+        commandManagers.remove(event.getChannel().getName());
         super.onKick(event);
     }
 
@@ -99,9 +102,11 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
     public void onMessage(MessageEvent<PircBotX> event) throws Exception {
         if(event.getMessage().startsWith("!")) {
             int endCommandIndex = event.getMessage().contains(" ") ? event.getMessage().indexOf(" ") : event.getMessage().length();
-            this.messengerPipeline.sendMessage(event.getChannel().getName(),
-                    getCommandManager(event.getChannel().getName()).enactCommand(CommandType.USER_MESSAGE,
-                    event.getMessage().substring(1, endCommandIndex), new WrappedEvent<>(event)), event.getBot());
+            String commandName = event.getMessage().substring(1, endCommandIndex);
+            Command c = getCommandManager(event.getChannel().getName()).getCommand(commandName);
+            WrappedEvent<MessageEvent<PircBotX>> wrappedEvent = new WrappedEvent<>(event);
+
+            if(c != null && c.isUserAllowed(event)) this.messengerPipeline.sendMessage(c.getMessage(wrappedEvent), c.commandType, wrappedEvent);
         }
     }
 

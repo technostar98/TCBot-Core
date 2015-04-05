@@ -15,11 +15,11 @@ public class BotConfigurationBuilder {
     public static Configuration<PircBotX> buildConfig(String server){
         //TODO actual configuration build based upon server, currently hardcoded
         ListenerManager<PircBotX> manager = new ThreadedListenerManager<>();
-        manager.addListener(new ListenerPipeline(server, "#TechnoDev"/*, "#TheSixPack"*/)); //TODO Dynamically load channels
+        manager.addListener(new ListenerPipeline(server, "#TechnoDev", "#TheSixPack")); //TODO Dynamically load channels
 
         Configuration<PircBotX> configuration = new Configuration.Builder<PircBotX>()
                 .addAutoJoinChannel("#TechnoDev")
-//                .addAutoJoinChannel("#TheSixPack")
+                .addAutoJoinChannel("#TheSixPack")
                 .setAutoNickChange(true)
                 .setAutoReconnect(true)
                 .setListenerManager(manager)

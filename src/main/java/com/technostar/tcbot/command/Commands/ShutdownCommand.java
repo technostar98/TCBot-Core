@@ -29,7 +29,15 @@ public class ShutdownCommand extends Command {
 
     @Override
     public void runCommand(WrappedEvent<MessageEvent<PircBotX>> event) {
-        if(isUserAllowed(event.getEvent())) BotManager.stop();
+        if(isUserAllowed(event.getEvent())){
+            Timer timer = new Timer("Shutdown");
+            timer.schedule(new TimerTask(){
+                @Override
+                public void run() {
+                    BotManager.stop();
+                }
+            }, 500L);
+        }
     }
 
     @Override
