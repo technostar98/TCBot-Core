@@ -6,9 +6,6 @@ import com.technostar98.tcbot.api.filter.ChatFilter;
 import java.util.HashMap;
 import java.util.List;
 
-/**
- * Created by bret on 4/8/15.
- */
 public class Module {
     private final HashMap<String, Command> commands = new HashMap<>();
     private final HashMap<String, ChatFilter> filters = new HashMap<>();

@@ -4,7 +4,6 @@ import com.technostar98.tcbot.api.command.Command;
 import com.technostar98.tcbot.api.command.CommandType;
 import com.technostar98.tcbot.api.filter.ChatFilter;
 import com.technostar98.tcbot.api.lib.WrappedEvent;
-import com.technostar98.tcbot.command.Commands.*;
 import org.pircbotx.PircBotX;
 import org.pircbotx.hooks.events.MessageEvent;
 

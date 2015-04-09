@@ -12,7 +12,7 @@ import java.util.Map;
 public class BotManager {
 
     private static HashMap<String, IRCBot> bots = new HashMap<>(); //Bots by server
-    private static Object lock = new Object();
+    private static final Object lock = new Object();
 
     public static void createNewBot(String server){
         bots.put(server, new IRCBot(BotConfigurationBuilder.buildConfig(server), BotState.RUNNING));

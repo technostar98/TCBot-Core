@@ -93,9 +93,9 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
             CommandManager cm = new CommandManager(server, event.getChannel().getName());
 
             //TODO module command/filter loading
-            CommandPool.getBotCommandsList().stream().forEach(c -> cm.addCommand(c));
+            CommandPool.getBotCommandsList().forEach(c -> cm.addCommand(c));
             cm.getCommands().stream().forEach(c -> c.setServer(server));
-            CommandPool.getBotFilterList().stream().forEach(f -> cm.addFilter(f));
+            CommandPool.getBotFilterList().forEach(f -> cm.addFilter(f));
             cm.getFilters().stream().forEach(f -> f.setServer(server));
 
             commandManagers.put(event.getChannel().getName(), cm);

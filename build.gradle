@@ -15,3 +15,42 @@ dependencies {
     compile 'mysql:mysql-connector-java:5.1.35'
     compile 'org.slf4j:slf4j-simple:1.7.5'
 }
+
+jar {
+    manifest {
+        def requiredProjects = ''
+        configurations.compile.getAllDependencies().withType(ProjectDependency).each {dep->
+            def dependantProjects = dep.getDependencyProject()
+            def projects = project(dependantProjects.path).libsDir.list().findAll{it.endsWith('.jar')}
+            projects.removeAll(projects.findAll{it.endsWith('test.jar')})
+            def requiredProject = projects.join(' ')
+            requiredProjects +=  requiredProject.replaceAll(/ /,'%20') + ' '
+//            logger.info 'Required Project: ' + requiredProject
+        }
+//        logger.info 'Required requiredProjects: ' + requiredProjects
+
+        def compileFiles = configurations.compile.files{ it instanceof ExternalDependency }.collect  {
+            File file = it
+            "lib/${file.name}"
+        }.join(' ')
+
+        def manifestPath = requiredProjects + compileFiles
+//        logger.info 'Manifest: '+ manifestPath
+        attributes 'Main-Class': "com.technostar98.tcbot.Launcher"
+        attributes 'Class-Path': manifestPath
+        attributes 'Build-date': new Date();
+        attributes 'Application-Version': project.version
+    }
+}
+
+/**
+ * Copies the dependencies to the lib directory in preparation for them to be added to a jar file
+ */
+task copyRuntimeDependencies(dependsOn: configurations.runtime, type: Copy) {
+   /* into('build/output')
+    from configurations.runtime*/
+
+    into('build/libs/lib')
+    exclude 'TCBot-' + version + '.jar'
+    from configurations.runtime
+}

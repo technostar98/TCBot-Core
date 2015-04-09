@@ -5,7 +5,6 @@ import org.pircbotx.PircBotX;
 import org.pircbotx.hooks.events.ActionEvent;
 import org.pircbotx.hooks.events.JoinEvent;
 import org.pircbotx.hooks.events.MessageEvent;
-import org.pircbotx.hooks.events.QuitEvent;
 
 public abstract class ChatFilter {
     private final String name;

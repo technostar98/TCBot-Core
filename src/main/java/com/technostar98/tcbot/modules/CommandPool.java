@@ -9,9 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Created by bret on 4/7/15.
- */
 public class CommandPool {
 
     private static HashMap<String, Command> botCommands = new HashMap<>();

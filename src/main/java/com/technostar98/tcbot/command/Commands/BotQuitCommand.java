@@ -9,9 +9,6 @@ import org.pircbotx.PircBotX;
 import org.pircbotx.UserLevel;
 import org.pircbotx.hooks.events.MessageEvent;
 
-/**
- * Created by bret on 4/3/15.
- */
 public class BotQuitCommand extends Command {
 
     public BotQuitCommand(String server){

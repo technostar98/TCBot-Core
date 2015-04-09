@@ -1,8 +1,5 @@
 package com.technostar98.tcbot.api.lib;
 
-/**
- * Created by bret on 4/3/15.
- */
 public class Configuration<U> {
     private U value;
     private final Class<?> type; //Possibly useful for later

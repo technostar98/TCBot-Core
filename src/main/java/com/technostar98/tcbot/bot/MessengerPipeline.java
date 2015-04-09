@@ -7,9 +7,6 @@ import org.pircbotx.hooks.events.MessageEvent;
 
 import java.util.HashMap;
 
-/**
- * Created by bret on 4/3/15.
- */
 public class MessengerPipeline {
     private final String server;
     private int messagesPerSec, lastMessageID = 1;

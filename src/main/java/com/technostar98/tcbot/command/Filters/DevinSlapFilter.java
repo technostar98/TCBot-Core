@@ -6,13 +6,9 @@ import org.pircbotx.PircBotX;
 import org.pircbotx.hooks.events.ActionEvent;
 import org.pircbotx.hooks.events.JoinEvent;
 import org.pircbotx.hooks.events.MessageEvent;
-import org.pircbotx.hooks.events.QuitEvent;
 
 import java.util.Random;
 
-/**
- * Created by bret on 4/8/15.
- */
 public class DevinSlapFilter extends ChatFilter {
 
     public DevinSlapFilter(String server){
