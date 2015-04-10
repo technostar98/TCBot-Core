@@ -6,9 +6,6 @@ import com.technostar98.tcbot.api.lib.WrappedEvent;
 import org.pircbotx.PircBotX;
 import org.pircbotx.hooks.events.MessageEvent;
 
-/**
- * Created by bret on 4/3/15.
- */
 public class JoinChannelCommand extends Command{
 
     public JoinChannelCommand(String server){

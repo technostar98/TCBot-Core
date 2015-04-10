@@ -10,9 +10,6 @@ import org.pircbotx.hooks.events.MessageEvent;
 import java.util.Timer;
 import java.util.TimerTask;
 
-/**
- * Created by bret on 4/3/15.
- */
 public class ShutdownCommand extends Command {
 
     public ShutdownCommand(String server){

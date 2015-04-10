@@ -50,7 +50,37 @@ task copyRuntimeDependencies(dependsOn: configurations.runtime, type: Copy) {
    /* into('build/output')
     from configurations.runtime*/
 
-    into('build/libs/lib')
-    exclude 'TCBot-' + version + '.jar'
-    from configurations.runtime
+    copy {
+        from configurations.runtime
+        into('build/libs/lib')
+        exclude 'TCBot-' + version + '.jar'
+    }
+
+    copy {
+        from 'include'
+        into('build/libs')
+    }
+
+    updateRunScripts()
+}
+
+task publishZip(type: Zip) {
+    from 'build/libs'
+    baseName = 'TCBot'
+    classifier = 'zipped'
+}
+
+def updateRunScripts() {
+    File windows = new File('build/libs/launch.bat')
+    File linux = new File('build/libs/launch.sh')
+
+    if(!windows.exists() || !linux.exists()){
+        println "Could not find launch.bat or launch.sh"
+        return 0
+    }else{
+        println "Found launch.bat and launch.sh"
+    }
+
+    windows.text = windows.getText().replace('{JAR}', 'TCBot-' + project.version + '.jar')
+    linux.text = linux.getText().replace('{JAR}', 'TCBot-' + project.version + '.jar')
 }

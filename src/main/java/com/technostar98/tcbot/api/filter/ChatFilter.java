@@ -15,9 +15,9 @@ public abstract class ChatFilter {
         this.server = server;
     }
 
-    public abstract boolean onUserMessage(WrappedEvent<MessageEvent<PircBotX>> e);
-    public abstract boolean onUserJoin(WrappedEvent<JoinEvent<PircBotX>> e);
-    public abstract boolean onUserAction(WrappedEvent<ActionEvent<PircBotX>> e);
+    public abstract FilterResponse onUserMessage(WrappedEvent<MessageEvent<PircBotX>> e);
+    public abstract FilterResponse onUserJoin(WrappedEvent<JoinEvent<PircBotX>> e);
+    public abstract FilterResponse onUserAction(WrappedEvent<ActionEvent<PircBotX>> e);
 
     public void setServer(String server) {
         this.server = server;
