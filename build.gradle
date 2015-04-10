@@ -46,28 +46,32 @@ jar {
 /**
  * Copies the dependencies to the lib directory in preparation for them to be added to a jar file
  */
-task copyRuntimeDependencies(dependsOn: configurations.runtime, type: Copy) {
-   /* into('build/output')
-    from configurations.runtime*/
+
+
+task publishZip(type: Zip) {
+    copyRuntimeDependencies()
+
+    from 'build/libs'
+    baseName = 'TCBot'
+    classifier = 'zipped'
+}
+
+def copyRuntimeDependencies() {
+    /* into('build/output')
+     from configurations.runtime*/
 
     copy {
-        from configurations.runtime
         into('build/libs/lib')
+        from configurations.runtime
         exclude 'TCBot-' + version + '.jar'
     }
 
     copy {
-        from 'include'
         into('build/libs')
+        from 'include'
     }
 
     updateRunScripts()
-}
-
-task publishZip(type: Zip) {
-    from 'build/libs'
-    baseName = 'TCBot'
-    classifier = 'zipped'
 }
 
 def updateRunScripts() {
