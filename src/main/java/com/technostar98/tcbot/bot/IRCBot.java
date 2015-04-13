@@ -9,6 +9,7 @@ import org.pircbotx.PircBotX;
 public class IRCBot {
     private PircBotX bot;
     private BotState state;
+    private String nick;
 
     protected IRCBot(Configuration config, BotState state){
         this.bot = new PircBotX(config);
@@ -29,5 +30,13 @@ public class IRCBot {
 
     public void setState(BotState state) {
         this.state = state;
+    }
+
+    public String getNick() {
+        return nick;
+    }
+
+    public void setNick(String nick) {
+        this.nick = nick;
     }
 }

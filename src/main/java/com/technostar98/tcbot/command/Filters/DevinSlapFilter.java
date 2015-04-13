@@ -4,9 +4,7 @@ import com.technostar98.tcbot.api.filter.ChatFilter;
 import com.technostar98.tcbot.api.filter.FilterResponse;
 import com.technostar98.tcbot.api.lib.WrappedEvent;
 import org.pircbotx.PircBotX;
-import org.pircbotx.hooks.events.ActionEvent;
-import org.pircbotx.hooks.events.JoinEvent;
-import org.pircbotx.hooks.events.MessageEvent;
+import org.pircbotx.hooks.events.*;
 
 import java.util.Random;
 
@@ -14,6 +12,31 @@ public class DevinSlapFilter extends ChatFilter {
 
     public DevinSlapFilter(String server){
         super("devinSlap", server);
+    }
+
+    @Override
+    public FilterResponse onServerConnect(WrappedEvent<ConnectEvent<PircBotX>> e) {
+        return null;
+    }
+
+    @Override
+    public FilterResponse onServerDisconnect(WrappedEvent<DisconnectEvent<PircBotX>> e) {
+        return null;
+    }
+
+    @Override
+    public FilterResponse onChannelDisconnect(WrappedEvent<KickEvent<PircBotX>> e) {
+        return null;
+    }
+
+    @Override
+    public FilterResponse onQuit(WrappedEvent<QuitEvent<PircBotX>> e) {
+        return null;
+    }
+
+    @Override
+    public FilterResponse onSocketConnect(WrappedEvent<SocketConnectEvent<PircBotX>> e) {
+        return null;
     }
 
     @Override

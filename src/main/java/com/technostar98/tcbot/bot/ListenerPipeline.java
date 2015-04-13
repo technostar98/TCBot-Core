@@ -43,7 +43,7 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
 
     @Override
     public void onAction(ActionEvent<PircBotX> event) throws Exception {
-        if(!event.getUser().getNick().contains("TCBot")) getCommandManager(event.getChannel().getName()).getFilters().forEach(f -> f.onUserAction(new WrappedEvent<>(event)));
+        if(!event.getUser().getNick().equals(BotManager.getBot(server).getNick())) getCommandManager(event.getChannel().getName()).getFilters().forEach(f -> f.onUserAction(new WrappedEvent<>(event)));
         super.onAction(event);
     }
 
@@ -54,11 +54,14 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
 
     @Override
     public void onConnect(ConnectEvent<PircBotX> event) throws Exception {
+        commandManagers.keySet().parallelStream().forEach(cm -> getCommandManager(cm).getFilters().forEach(f -> f.onServerConnect(new WrappedEvent<>(event))));
         super.onConnect(event);
     }
 
     @Override
     public void onDisconnect(DisconnectEvent<PircBotX> event) throws Exception {
+        commandManagers.keySet().parallelStream().forEach(cm -> getCommandManager(cm).getFilters().forEach(f -> f.onServerDisconnect(new WrappedEvent<>(event))));
+        commandManagers.entrySet().forEach(e -> removeCommandManager(e.getKey()));
         super.onDisconnect(event);
     }
 
@@ -84,6 +87,7 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
 
     @Override
     public void onInvite(InviteEvent<PircBotX> event) throws Exception {
+        event.getBot().sendIRC().joinChannel(event.getChannel());
         super.onInvite(event);
     }
 
@@ -109,6 +113,7 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
 
     @Override
     public void onKick(KickEvent<PircBotX> event) throws Exception {
+        commandManagers.keySet().parallelStream().forEach(cm -> getCommandManager(cm).getFilters().forEach(f -> f.onChannelDisconnect(new WrappedEvent<>(event))));
         commandManagers.remove(event.getChannel().getName());
         super.onKick(event);
     }
@@ -147,6 +152,7 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
 
     @Override
     public void onNickChange(NickChangeEvent<PircBotX> event) throws Exception {
+        BotManager.getBot(server).setNick(event.getNewNick());
         super.onNickChange(event);
     }
 
@@ -182,6 +188,7 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
 
     @Override
     public void onQuit(QuitEvent<PircBotX> event) throws Exception {
+        if(event.getUser().getNick().equals(BotManager.getBot(server).getNick())) commandManagers.keySet().parallelStream().forEach(cm -> getCommandManager(cm).getFilters().forEach(f -> f.onQuit(new WrappedEvent<>(event))));
         super.onQuit(event);
     }
 
@@ -287,6 +294,7 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
 
     @Override
     public void onSocketConnect(SocketConnectEvent<PircBotX> event) throws Exception {
+        commandManagers.entrySet().forEach(e -> e.getValue().getFilters().forEach(f -> f.onSocketConnect(new WrappedEvent<>(event))));
         super.onSocketConnect(event);
     }
 
@@ -357,7 +365,7 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
 
     @Override
     public void onGenericMessage(GenericMessageEvent<PircBotX> event) throws Exception {
-
+        super.onGenericMessage(event);
     }
 
     @Override

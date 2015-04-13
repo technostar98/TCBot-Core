@@ -14,8 +14,8 @@ public class BotManager {
     private static HashMap<String, IRCBot> bots = new HashMap<>(); //Bots by server
     private static final Object lock = new Object();
 
-    public static void createNewBot(String server){
-        bots.put(server, new IRCBot(BotConfigurationBuilder.buildConfig(server), BotState.RUNNING));
+    public static void createNewBot(String server, String... channels){
+        bots.put(server, new IRCBot(BotConfigurationBuilder.buildConfig(server, channels), BotState.RUNNING));
     }
 
     public static IRCBot getBot(String server){
