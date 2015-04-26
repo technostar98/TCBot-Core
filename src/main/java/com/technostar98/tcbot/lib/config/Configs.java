@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
- * <br>Used to hold and manage any configs for the bot</br>
+ * Used to hold and manage any configs for the bot
  * Core configs by name and type are:
  *
  *
