@@ -1,10 +1,12 @@
 package com.technostar98.tcbot.bot;
 
+import com.technostar98.tcbot.lib.Logger;
+import org.pircbotx.PircBotX;
 import org.pircbotx.exception.IrcException;
+import org.pircbotx.hooks.Listener;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Used to manage all the bots and perform actions on all of them
@@ -13,6 +15,7 @@ public class BotManager {
 
     private static HashMap<String, IRCBot> bots = new HashMap<>(); //Bots by server
     private static final Object lock = new Object();
+    private static boolean debuggerClosed = false;
 
     public static void createNewBot(String server, String... channels){
         bots.put(server, new IRCBot(BotConfigurationBuilder.buildConfig(server, channels), BotState.RUNNING));
@@ -54,13 +57,13 @@ public class BotManager {
             }
 
             //TODO close anything else necessary
+            forceDebuggerShutdown();
             try {
                 Thread.sleep(1000);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-        System.exit(0);
     }
 
     public static void stopServer(String server){
@@ -77,10 +80,67 @@ public class BotManager {
                     bots.remove(server);
                 }
 
-                if(bots.isEmpty()) System.exit(0);
+            scheduleDebuggerShutdown();
             }catch(Exception e){
                 e.printStackTrace();
             }
         }
+    }
+
+    public static void changeBotServer(String server){
+        synchronized (lock){
+            try{
+                IRCBot bot = getBot(server);
+
+                if(bot != null){
+                    //TODO change server
+                }
+
+
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private static void scheduleDebuggerShutdown(){
+        if(bots.size() == 0) debuggerClosed = true;
+        else Logger.warning(Thread.currentThread().getName() + " tried to shutdown debugger when it is still active.");
+    }
+
+    public static void forceDebuggerShutdown(){
+        debuggerClosed = true;
+    }
+
+    public static void startDebugMonitor(){
+        Thread debuggerThread = new Thread(() -> {
+            Calendar c = Calendar.getInstance();
+            do {
+                Logger.info("Posting debug info for [" + c.getTime() + "]");
+
+                Logger.info("Thread count: " + Thread.activeCount());
+                Logger.info("Ram used (bytes): " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
+                Logger.info("Bot count: " + bots.size());
+                Logger.info("Servers connected to: " + bots.keySet().toArray().toString());
+
+                try {
+                    Thread.sleep(30000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }while(!debuggerClosed);
+        }, "TCBotDebuggerThread");
+
+        debuggerThread.start();
+    }
+
+    public static ListenerPipeline getBotOutputPipe(String server){
+        List<Listener<PircBotX>> adapters = getBot(server).getBot().getConfiguration().getListenerManager().getListeners().asList();
+
+        for(Listener l : adapters){
+            if(l instanceof ListenerPipeline) return (ListenerPipeline)l;
+        }
+
+        return null;
     }
 }

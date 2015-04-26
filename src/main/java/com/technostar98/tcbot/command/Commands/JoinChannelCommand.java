@@ -30,12 +30,17 @@ public class JoinChannelCommand extends Command{
     }
 
     @Override
-    public void runCommand(WrappedEvent<MessageEvent<PircBotX>> event) {
-
+    public boolean runCommand(WrappedEvent<MessageEvent<PircBotX>> event) {
+        return true;
     }
 
     @Override
     public boolean isUserAllowed(MessageEvent<PircBotX> event) {
         return event.getUser().getRealName().equals("Horf") || event.getUser().getNick().contains("Techno");
+    }
+
+    @Override
+    public String getHelpMessage() {
+        return "!join target (only certain users can use this)";
     }
 }

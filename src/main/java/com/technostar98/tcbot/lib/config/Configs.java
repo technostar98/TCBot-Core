@@ -9,7 +9,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
- * Used to hold and manage any configs for the bot
+ * <br>Used to hold and manage any configs for the bot</br>
+ * Core configs by name and type are:
+ *
+ *
  */
 public class Configs {
 
@@ -21,10 +24,14 @@ public class Configs {
         loadConfigs();
 
         String workingDir = Launcher.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+        String configDir = workingDir + "config/";
+        String moduleDir = workingDir + "modules/";
 
         addStringConfiguration("workingDir", workingDir);
+        addStringConfiguration("configDir", configDir);
+        addStringConfiguration("moduleDir", moduleDir);
+        addStringConfiguration("version", "${VERSION}");
         addLongConfiguration("startTime", System.currentTimeMillis());
-
     }
 
     public static void loadConfigs(){

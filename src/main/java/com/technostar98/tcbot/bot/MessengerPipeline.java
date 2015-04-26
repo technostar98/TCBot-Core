@@ -9,7 +9,8 @@ import java.util.HashMap;
 
 public class MessengerPipeline {
     private final String server;
-    private int messagesPerSec, lastMessageID = 1;
+    private int messagesPerSec, lastMessageID = 1, maxMessages = 5, minMessages = 1;
+    private long milisBetween = 1000L;
     private HashMap<Integer, Long> messageTimes = new HashMap<>();
 
     public MessengerPipeline(String server, int limitPerSecond){
@@ -59,8 +60,9 @@ public class MessengerPipeline {
     }
 
     private boolean shouldMessageSend(){
+        if(lastMessageID > maxMessages) lastMessageID = minMessages;
         if(messageTimes.containsKey(lastMessageID)){ //TODO Buffer method for output
-            if(System.currentTimeMillis() - messageTimes.get(lastMessageID) >= 1000){
+            if(System.currentTimeMillis() - messageTimes.get(lastMessageID) >= milisBetween){
                 messageTimes.put(lastMessageID, System.currentTimeMillis());
                 lastMessageID++;
                 return true;

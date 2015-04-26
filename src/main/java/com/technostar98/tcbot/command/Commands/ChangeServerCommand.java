@@ -7,15 +7,16 @@ import org.pircbotx.PircBotX;
 import org.pircbotx.UserLevel;
 import org.pircbotx.hooks.events.MessageEvent;
 
-public class LeaveChannelCommand extends Command{
+public class ChangeServerCommand extends Command {
 
-    public LeaveChannelCommand(String server){
-        super("leave", CommandType.LEAVE, server, UserLevel.OP, UserLevel.OP);
+    public ChangeServerCommand(String server) {
+        super("server", CommandType.GENERIC, server, UserLevel.OP);
+        //TODO Change server command
     }
 
     @Override
     public String getMessage(WrappedEvent<MessageEvent<PircBotX>> event) {
-        return "See ya later!";
+        return null;
     }
 
     @Override
@@ -25,6 +26,6 @@ public class LeaveChannelCommand extends Command{
 
     @Override
     public String getHelpMessage() {
-        return "!leave (only ops/channel owners can run this)";
+        return "!server newServer (WIP)";
     }
 }

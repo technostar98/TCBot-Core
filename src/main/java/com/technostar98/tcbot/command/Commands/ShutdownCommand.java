@@ -18,13 +18,13 @@ public class ShutdownCommand extends Command {
 
     @Override
     public String getMessage(WrappedEvent<MessageEvent<PircBotX>> event) {
-        runCommand(event);
-        if(isUserAllowed(event.getEvent())) return "Shutting down....";
+        boolean ran = runCommand(event);
+        if(ran) return "Shutting down....";
         else return null;
     }
 
     @Override
-    public void runCommand(WrappedEvent<MessageEvent<PircBotX>> event) {
+    public boolean runCommand(WrappedEvent<MessageEvent<PircBotX>> event) {
         if(isUserAllowed(event.getEvent())){
             Timer timer = new Timer("Shutdown");
             timer.schedule(new TimerTask(){
@@ -33,11 +33,18 @@ public class ShutdownCommand extends Command {
                     BotManager.stopServer(getServer());
                 }
             }, 1000L);
+            return true;
         }
+        return false;
     }
 
     @Override
     public boolean isUserAllowed(MessageEvent<PircBotX> event) {
         return event.getUser().getRealName().equals("Horf");
+    }
+
+    @Override
+    public String getHelpMessage() {
+        return "!shutdown (Only certain users can run this)";
     }
 }

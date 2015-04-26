@@ -4,13 +4,15 @@ import com.technostar98.tcbot.api.lib.WrappedEvent;
 import org.pircbotx.PircBotX;
 import org.pircbotx.hooks.events.*;
 
-public abstract class ChatFilter {
+public abstract class ChatFilter implements Comparable<ChatFilter>{
     private final String name;
+    private final int priority;
     private String server;
 
-    public ChatFilter(String name, String server){
+    public ChatFilter(String name, String server, int priority){
         this.name = name;
         this.server = server;
+        this.priority = priority;
     }
 
     public abstract FilterResponse onUserMessage(WrappedEvent<MessageEvent<PircBotX>> e);
@@ -21,6 +23,7 @@ public abstract class ChatFilter {
     public abstract FilterResponse onChannelDisconnect(WrappedEvent<KickEvent<PircBotX>> e);
     public abstract FilterResponse onQuit(WrappedEvent<QuitEvent<PircBotX>> e);
     public abstract FilterResponse onSocketConnect(WrappedEvent<SocketConnectEvent<PircBotX>> e);
+    public abstract FilterResponse onNickPinged(WrappedEvent<MessageEvent<PircBotX>> e);
 
     public void setServer(String server) {
         this.server = server;
@@ -32,5 +35,14 @@ public abstract class ChatFilter {
 
     public String getServer() {
         return server;
+    }
+
+    public int getPriority() {
+        return priority;
+    }
+
+    @Override
+    public int compareTo(ChatFilter o) {
+        return this.getPriority() - o.priority;
     }
 }

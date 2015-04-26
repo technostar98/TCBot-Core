@@ -11,11 +11,16 @@ import java.util.Random;
 public class DevinSlapFilter extends ChatFilter {
 
     public DevinSlapFilter(String server){
-        super("devinSlap", server);
+        super("devinSlap", server, 0);
     }
 
     @Override
     public FilterResponse onServerConnect(WrappedEvent<ConnectEvent<PircBotX>> e) {
+        return null;
+    }
+
+    @Override
+    public FilterResponse onNickPinged(WrappedEvent<MessageEvent<PircBotX>> e) {
         return null;
     }
 

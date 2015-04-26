@@ -22,11 +22,18 @@ public class BotQuitCommand extends Command {
     }
 
     @Override
-    public void runCommand(WrappedEvent<MessageEvent<PircBotX>> event) {
+    public boolean runCommand(WrappedEvent<MessageEvent<PircBotX>> event) {
         boolean allowed = isUserAllowed(event.getEvent());
         if(allowed){
             event.getEvent().getBot().sendIRC().quitServer("Cya later, alligators!");
             BotManager.getBot(getServer()).setState(BotState.STOPPED);
         }
+
+        return allowed;
+    }
+
+    @Override
+    public String getHelpMessage() {
+        return "!quit (WIP)";
     }
 }

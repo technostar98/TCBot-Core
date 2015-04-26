@@ -59,7 +59,8 @@ public abstract class Command {
     }
 
     public abstract String getMessage(WrappedEvent<MessageEvent<PircBotX>> event);
-    public abstract void runCommand(WrappedEvent<MessageEvent<PircBotX>> event);
+    public abstract boolean runCommand(WrappedEvent<MessageEvent<PircBotX>> event);
+    public abstract String getHelpMessage();
 
     @Override
     public String toString() {

@@ -1,5 +1,7 @@
 package com.technostar98.tcbot.bot;
 
+import com.technostar98.tcbot.lib.config.Configs;
+import com.technostar98.tcbot.lib.config.ServerConfiguration;
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
 import org.pircbotx.hooks.managers.ListenerManager;
@@ -25,8 +27,28 @@ public class BotConfigurationBuilder {
                 .setName("TCBot")
                 .setRealName("TCBot")
                 .setServer(server, 6667)
-                .setVersion("0.0.001");
+                .setVersion(Configs.getStringConfiguration("version").getValue());
         for(String s : channels) configurationBuilder.addAutoJoinChannel(s);
+
+        return configurationBuilder.buildConfiguration();
+    }
+
+    public static Configuration<PircBotX> buildConfig(ServerConfiguration config){
+        ListenerManager<PircBotX> manager = new ThreadedListenerManager<>();
+        manager.addListener(new ListenerPipeline(config.getServerAddress(), config.getAutoJoinChannels())); //TODO Dynamically load channels
+
+        Configuration.Builder<PircBotX> configurationBuilder = new Configuration.Builder<PircBotX>()
+                .setAutoNickChange(false)
+                .setAutoReconnect(true)
+                .setListenerManager(manager)
+                .setLogin(config.getNick())
+                .setMessageDelay(0L)
+                .setName(config.getNick())
+                .setRealName(config.getNick())
+                .setNickservPassword(config.getPassword())
+                .setServer(config.getServerAddress(), 6667)
+                .setVersion(Configs.getStringConfiguration("version").getValue());
+        config.getAutoJoinChannels().forEach(c -> configurationBuilder.addAutoJoinChannel(c));
 
         return configurationBuilder.buildConfiguration();
     }

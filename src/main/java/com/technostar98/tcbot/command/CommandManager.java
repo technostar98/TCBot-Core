@@ -8,6 +8,7 @@ import org.pircbotx.PircBotX;
 import org.pircbotx.hooks.events.MessageEvent;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,11 +19,13 @@ public class CommandManager {
     //TODO add modules support
     private ArrayList<Command> commands = new ArrayList<>();
     private ArrayList<ChatFilter> filters = new ArrayList<>();
+    private HashMap<String, Object> channelValues = new HashMap<>();
     private final String channel, server;
 
     public CommandManager(String server, String channel){
         this.channel = channel;
         this.server = server;
+        //TODO load values from database
     }
 
     public List<Command> getCommands(String name){
@@ -81,5 +84,27 @@ public class CommandManager {
 
     public String getServer() {
         return server;
+    }
+
+    public void removeCommand(String name){
+        if(getCommand(name) != null)
+            commands.remove(commands.indexOf(getCommand(name)));
+    }
+
+    public void removeFilter(String name){
+        if(getFilter(name) != null)
+            filters.remove(filters.indexOf(getFilter(name)));
+    }
+
+    public void setValue(String key, Object value){
+        this.channelValues.put(key, value);
+    }
+
+    public Object getValue(String key){
+        return channelValues.getOrDefault(key, null);
+    }
+
+    public void saveValues(){
+        //TODO save values map
     }
 }
