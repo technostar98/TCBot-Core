@@ -8,6 +8,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * <p>Created by Bret 'Horfius' Dusseault in 2015.
+ * All code in this file is open-source and
+ * may be used with permission of Bret Dusseault.
+ * Any violations of this violate the terms of
+ * the license of TCBot-Core.</p>
+ *
+ * @author Bret 'Horfius' Dusseault
+ */
 public class CommandPool {
 
     private static HashMap<String, Command> botCommands = new HashMap<>();

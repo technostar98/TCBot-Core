@@ -20,6 +20,15 @@ import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+/**
+ * <p>Created by Bret 'Horfius' Dusseault in 2015.
+ * All code in this file is open-source and
+ * may be used with permission of Bret Dusseault.
+ * Any violations of this violate the terms of
+ * the license of TCBot-Core.</p>
+ *
+ * @author Bret 'Horfius' Dusseault
+ */
 public class ModuleLoader {
     private final String name;
 

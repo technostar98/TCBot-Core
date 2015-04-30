@@ -4,6 +4,15 @@ import com.technostar98.tcbot.api.lib.WrappedEvent;
 import org.pircbotx.PircBotX;
 import org.pircbotx.hooks.events.*;
 
+/**
+ * <p>Created by Bret 'Horfius' Dusseault in 2015.
+ * All code in this file is open-source and
+ * may be used with permission of Bret Dusseault.
+ * Any violations of this violate the terms of
+ * the license of TCBot-Core.</p>
+ *
+ * @author Bret 'Horfius' Dusseault
+ */
 public abstract class ChatFilter implements Comparable<ChatFilter>{
     private final String name;
     private final int priority;

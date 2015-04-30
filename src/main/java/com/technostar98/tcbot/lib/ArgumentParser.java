@@ -4,6 +4,15 @@ import com.technostar98.tcbot.lib.exceptions.MissingArgumentException;
 
 import java.util.*;
 
+/**
+ * <p>Created by Bret 'Horfius' Dusseault in 2015.
+ * All code in this file is open-source and
+ * may be used with permission of Bret Dusseault.
+ * Any violations of this violate the terms of
+ * the license of TCBot-Core.</p>
+ *
+ * @author Bret 'Horfius' Dusseault
+ */
 public class ArgumentParser {
     private static List<ArgumentConfiguration> configurations;
     private static HashMap<String, Integer> configIndexes = new HashMap<>();

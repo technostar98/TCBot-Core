@@ -11,10 +11,22 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
- * Used to hold and manage any configs for the bot
- * Core configs by name and type are:
+ * <p>Used to hold and manage any configs for the bot
+ * Core configs by name and type are:</p>
  *
+ * <p>workingDir - String</p>
+ * <p>configDir - String</p>
+ * <p>moduleDir - String</p>
+ * <p>version - String</p>
+ * <p>startTime - Long</p>
  *
+ * <p>Created by Bret 'Horfius' Dusseault in 2015.
+ * All code in this file is open-source and
+ * may be used with permission of Bret Dusseault.
+ * Any violations of this violate the terms of
+ * the license of TCBot-Core.</p>
+ *
+ * @author Bret 'Horfius' Dusseault
  */
 public class Configs {
 
