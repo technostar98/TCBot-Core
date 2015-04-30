@@ -62,7 +62,7 @@ jar {
 
 copyLibs()
 copyScripts()
-buildZip()
+//buildZip()
 
 def copyLibs(){
     String s = File.separator
@@ -97,6 +97,7 @@ def copyScripts(){
     windows.text = windows.getText().replace('{JAR}', 'TCBot-' + project.version + '.jar')
     linux.text = linux.getText().replace('{JAR}', 'TCBot-' + project.version + '.jar')
 }
+/*
 
 def buildZip(){
     task zip(type: Zip) {
@@ -105,4 +106,4 @@ def buildZip(){
         baseName = 'TCBot'
         classifier = 'zipped'
     }
-}
+}*/
