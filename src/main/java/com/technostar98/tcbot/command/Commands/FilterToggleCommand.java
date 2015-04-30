@@ -28,13 +28,13 @@ public class FilterToggleCommand extends Command{
         else if(words.length == 2)
             return "Please specify the target filter";
         else if(words[2].startsWith("--module=") && words.length >= 4 &&
-                doesFilterExist(words[3], words[2].substring(words[2].indexOf("=") + 1))){
+                CommandPool.doesFilterExist(words[3], words[2].substring(words[2].indexOf("=") + 1))){
             boolean success = runCommand(event);
             if(success)
                 return "Filter " + words[3] + " has been successfully " + (words[1] + "d");
             else
                 return "Filter " + words[3] + " could not be toggled.";
-        }else if(doesFilterExist(words[2], null)){
+        }else if(CommandPool.doesFilterExist(words[2], null)){
             boolean success = runCommand(event);
             if(success)
                 return "Filter " + words[2] + " has been successfully " + (words[1] + "d");
@@ -77,9 +77,8 @@ public class FilterToggleCommand extends Command{
         }else{
             String name = words[2];
 
-            IRCBot bot = BotManager.getBot(getServer());
-            CommandManager cm = ((ListenerPipeline)bot.getBot().getConfiguration().getListenerManager().
-                    getListeners().asList().get(1)).getCommandManager(event.getEvent().getChannel().getName());
+            ListenerPipeline l = BotManager.getBotOutputPipe(getServer());
+            CommandManager cm = l.getCommandManager(event.getEvent().getChannel().getName());
 
             if (action.equals("enable")) {
                 if (cm.getFilter(name) != null) {
@@ -107,18 +106,5 @@ public class FilterToggleCommand extends Command{
         return "!filter {enable|disable} <--module=name> filterName";
     }
 
-    private boolean doesFilterExist(String name, String module){
-        boolean exists;
 
-        if(module != null){
-            if(CommandPool.getModule(module) != null)
-                exists = CommandPool.getModule(module).getFilter(name) != null;
-            else
-                exists = false;
-        }else{
-            exists = CommandPool.getBotFilterList().stream().anyMatch(f -> f.getName().equals(name));
-        }
-
-        return exists;
-    }
 }

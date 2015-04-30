@@ -50,17 +50,6 @@ jar {
 
 
 task publishZip(type: Zip) {
-    copyRuntimeDependencies()
-
-    from 'build/libs'
-    baseName = 'TCBot'
-    classifier = 'zipped'
-}
-
-def copyRuntimeDependencies() {
-    /* into('build/output')
-     from configurations.runtime*/
-
     copy {
         into('build/libs/lib')
         from configurations.runtime
@@ -71,6 +60,30 @@ def copyRuntimeDependencies() {
         into('build/libs')
         from 'include'
     }
+
+    File windows = new File('build/libs/launch.bat')
+    File linux = new File('build/libs/launch.sh')
+
+    if(!windows.exists() || !linux.exists()){
+        println "Could not find launch.bat or launch.sh"
+        return 0
+    }else{
+        println "Found launch.bat and launch.sh"
+    }
+
+    windows.text = windows.getText().replace('{JAR}', 'TCBot-' + project.version + '.jar')
+    linux.text = linux.getText().replace('{JAR}', 'TCBot-' + project.version + '.jar')
+
+    from 'build/libs'
+    baseName = 'TCBot'
+    classifier = 'zipped'
+}
+
+def copyRuntimeDependencies() {
+    /* into('build/output')
+     from configurations.runtime*/
+
+
 
     updateRunScripts()
 }
@@ -88,4 +101,16 @@ def updateRunScripts() {
 
     windows.text = windows.getText().replace('{JAR}', 'TCBot-' + project.version + '.jar')
     linux.text = linux.getText().replace('{JAR}', 'TCBot-' + project.version + '.jar')
+}
+
+allprojects {
+    task listModules << {task -> println "$task.project.name" }
+}
+
+subprojects {
+    listModules << {println "- Depends on TCBot"}
+
+    dependencies{
+        //compile project(':TCBot')
+    }
 }

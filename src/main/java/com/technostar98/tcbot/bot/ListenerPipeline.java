@@ -127,33 +127,34 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
     public void onMessage(MessageEvent<PircBotX> event) throws Exception {
         CommandManager cm = getCommandManager(event.getChannel().getName());
 
-        messaged:
-            if(cm != null) {
+        try {
+            messaged:
+            if (cm != null) {
                 if (cm.getFilters() != null) {
-                    if(event.getMessage().contains(event.getBot().getNick())){
+                    if (event.getMessage().contains(event.getBot().getNick())) {
                         FilterResponse filterResponse;
                         List<ChatFilter> filters = cm.getFilters();
                         Collections.sort(filters);
                         WrappedEvent<MessageEvent<PircBotX>> wrapped = new WrappedEvent<>(event);
 
                         int index = 0;
-                        while(index < filters.size()){
+                        while (index < filters.size()) {
                             filterResponse = filters.get(0).onNickPinged(wrapped);
-                            if(filterResponse == FilterResponse.BREAK_FILTERS) break;
-                            else if(filterResponse == FilterResponse.BREAK) break messaged;
+                            if (filterResponse == FilterResponse.BREAK_FILTERS) break;
+                            else if (filterResponse == FilterResponse.BREAK) break messaged;
                             index++;
                         }
-                    }else {
+                    } else {
                         FilterResponse filterResponse;
                         List<ChatFilter> filters = cm.getFilters();
                         Collections.sort(filters);
                         WrappedEvent<MessageEvent<PircBotX>> wrapped = new WrappedEvent<>(event);
 
                         int index = 0;
-                        while(index < filters.size()){
+                        while (index < filters.size()) {
                             filterResponse = filters.get(0).onUserMessage(wrapped);
-                            if(filterResponse == FilterResponse.BREAK_FILTERS) break;
-                            else if(filterResponse == FilterResponse.BREAK) break messaged;
+                            if (filterResponse == FilterResponse.BREAK_FILTERS) break;
+                            else if (filterResponse == FilterResponse.BREAK) break messaged;
                             index++;
                         }
                     }
@@ -168,6 +169,9 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
                         this.messengerPipeline.sendMessage(c.getMessage(wrappedEvent), c.commandType, wrappedEvent);
                 }
             }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     @Override

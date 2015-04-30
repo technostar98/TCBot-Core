@@ -4,6 +4,7 @@ import com.technostar98.tcbot.Launcher;
 import com.technostar98.tcbot.api.lib.Configuration;
 import com.technostar98.tcbot.lib.Logger;
 
+import java.io.File;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -24,8 +25,15 @@ public class Configs {
         loadConfigs();
 
         String workingDir = Launcher.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+        workingDir = workingDir.substring(0, workingDir.lastIndexOf("/"));
+        workingDir = workingDir.substring(0, workingDir.lastIndexOf("/") + 1);
         String configDir = workingDir + "config/";
         String moduleDir = workingDir + "modules/";
+
+        File dir = new File(configDir);
+        if(!dir.exists()) dir.mkdir();
+        dir = new File(moduleDir);
+        if(!dir.exists()) dir.mkdir();
 
         addStringConfiguration("workingDir", workingDir);
         addStringConfiguration("configDir", configDir);

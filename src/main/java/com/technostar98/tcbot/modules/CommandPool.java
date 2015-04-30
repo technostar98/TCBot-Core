@@ -4,7 +4,6 @@ import com.technostar98.tcbot.api.command.Command;
 import com.technostar98.tcbot.api.filter.ChatFilter;
 import com.technostar98.tcbot.command.Commands.*;
 import com.technostar98.tcbot.command.Filters.AntiSlapFilter;
-import com.technostar98.tcbot.command.Filters.DevinSlapFilter;
 
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +24,7 @@ public class CommandPool {
         Command filterToggle = new FilterToggleCommand(null);
         Command help = new HelpCommand(null);
         Command nickChange = new ChangeNickCommand(null);
+        Command module = new ModuleControllerCommand(null);
 
         botCommands.put(quit.getName(), quit);
         botCommands.put(join.getName(), join);
@@ -34,12 +34,11 @@ public class CommandPool {
         botCommands.put(filterToggle.getName(), filterToggle);
         botCommands.put(help.getName(), help);
         botCommands.put(nickChange.getName(), nickChange);
+        botCommands.put(module.getName(), module);
 
-        ChatFilter devinSlap = new DevinSlapFilter(null);
         ChatFilter antiSlap = new AntiSlapFilter(null);
 
         botFilters.put(antiSlap.getName(), antiSlap);
-        botFilters.put(devinSlap.getName(), devinSlap);
     }
 
     public static boolean loadModule(String module){
@@ -71,5 +70,20 @@ public class CommandPool {
     public static List<ChatFilter> getModuleFilters(String name){
         Module m = getModule(name);
         return m.getFilters().keySet().stream().map(n -> m.getFilter(n)).collect(Collectors.toList());
+    }
+
+    public static boolean doesFilterExist(String name, String module){
+        boolean exists;
+
+        if(module != null){
+            if(CommandPool.getModule(module) != null)
+                exists = CommandPool.getModule(module).getFilter(name) != null;
+            else
+                exists = false;
+        }else{
+            exists = CommandPool.getBotFilterList().stream().anyMatch(f -> f.getName().equals(name));
+        }
+
+        return exists;
     }
 }
