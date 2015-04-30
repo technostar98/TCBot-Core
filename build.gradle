@@ -15,9 +15,6 @@ if (System.getenv('BUILD_NUMBER') != null) {
     println "INFO: Your version is: " + project.version
 }
 
-version = "0.0.001.B-${buildnumber}"
-group = "com.technostar.tcbot"
-
 repositories {
 	mavenCentral()
 }
@@ -60,9 +57,11 @@ jar {
  * Copies the dependencies to the lib directory in preparation for them to be added to a jar file
  */
 
-copyLibs()
-copyScripts()
-//buildZip()
+build.doLast {
+    copyLibs()
+    copyScripts()
+    buildZip()
+}
 
 def copyLibs(){
     String s = File.separator
@@ -97,7 +96,6 @@ def copyScripts(){
     windows.text = windows.getText().replace('{JAR}', 'TCBot-' + project.version + '.jar')
     linux.text = linux.getText().replace('{JAR}', 'TCBot-' + project.version + '.jar')
 }
-/*
 
 def buildZip(){
     task zip(type: Zip) {
@@ -106,4 +104,4 @@ def buildZip(){
         baseName = 'TCBot'
         classifier = 'zipped'
     }
-}*/
+}
