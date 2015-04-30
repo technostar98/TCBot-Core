@@ -60,6 +60,10 @@ jar {
  * Copies the dependencies to the lib directory in preparation for them to be added to a jar file
  */
 
+copyLibs()
+copyScripts()
+buildZip()
+
 def copyLibs(){
     String s = File.separator
 
