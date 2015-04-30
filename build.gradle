@@ -60,12 +60,6 @@ jar {
  * Copies the dependencies to the lib directory in preparation for them to be added to a jar file
  */
 
-task postBuild(){
-    copyLibs()
-    copyScripts()
-    buildZip()
-}
-
 def copyLibs(){
     String s = File.separator
 
@@ -101,8 +95,8 @@ def copyScripts(){
 }
 
 def buildZip(){
-    println "Building zip."
     task zip(type: Zip) {
+        println "Building zip."
         from 'build/libs'
         baseName = 'TCBot'
         classifier = 'zipped'
