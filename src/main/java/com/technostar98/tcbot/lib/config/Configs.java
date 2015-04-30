@@ -37,12 +37,13 @@ public class Configs {
 
     static{
         loadConfigs();
+        char fileSeparator = File.separatorChar;
 
         String workingDir = Launcher.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-        workingDir = workingDir.substring(0, workingDir.lastIndexOf("/"));
-        workingDir = workingDir.substring(0, workingDir.lastIndexOf("/") + 1);
-        String configDir = workingDir + "config/";
-        String moduleDir = workingDir + "modules/";
+        workingDir = workingDir.substring(0, workingDir.lastIndexOf(fileSeparator));
+        workingDir = workingDir.substring(0, workingDir.lastIndexOf(fileSeparator) + 1);
+        String configDir = workingDir + "config" + fileSeparator;
+        String moduleDir = workingDir + "modules" + fileSeparator;
 
         File dir = new File(configDir);
         if(!dir.exists()) dir.mkdir();

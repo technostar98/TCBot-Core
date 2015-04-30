@@ -287,7 +287,12 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
 
     @Override
     public void onQuit(QuitEvent<PircBotX> event) throws Exception {
-        if(event.getUser().getNick().equals(event.getBot().getNick())) commandManagers.keySet().parallelStream().forEach(cm -> getCommandManager(cm).getFilters().forEach(f -> f.onQuit(new WrappedEvent<>(event))));
+        if(event.getUser().getNick().equals(event.getBot().getNick())){
+            commandManagers.keySet().parallelStream().forEach(cm -> {
+                if(getCommandManager(cm).getFilters() != null)
+                    getCommandManager(cm).getFilters().forEach(f -> f.onQuit(new WrappedEvent<>(event)));
+            });
+        }
         super.onQuit(event);
     }
 
