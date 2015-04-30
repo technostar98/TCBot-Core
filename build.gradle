@@ -1,10 +1,20 @@
 apply plugin: 'java'
 
 ext.buildnumber = 0
-project.buildnumber = System.getenv('BUILD_NUMBER') != null ? System.getenv('BUILD_NUMBER') : 0
-
-version = "0.0.001.B-${buildnumber}"
+project.buildnumber = System.getenv('BUILD_NUMBER') != null ? ".B-" + System.getenv('BUILD_NUMBER') : ""
+ 
+ 
+version = "0.0.001${buildnumber}"
 group = "com.technostar.tcbot"
+ 
+if (System.getenv('BUILD_NUMBER') != null) {
+        println "INFO: Build number detected - Adding suffix to .jar version"
+        println "INFO: Current build number: " + System.getenv('BUILD_NUMBER')
+        println "INFO: Version number: " + project.version
+}else {
+        println "INFO: No build number was detected...Feel free to ignore this if you are not a continuous intergration server."
+        println "INFO: Your version is: " + project.version
+}
 
 repositories {
 	mavenCentral()
