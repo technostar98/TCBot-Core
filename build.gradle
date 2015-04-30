@@ -2,19 +2,21 @@ apply plugin: 'java'
 
 ext.buildnumber = 0
 project.buildnumber = System.getenv('BUILD_NUMBER') != null ? ".B-" + System.getenv('BUILD_NUMBER') : ""
- 
- 
+
 version = "0.0.001${buildnumber}"
 group = "com.technostar.tcbot"
- 
+
 if (System.getenv('BUILD_NUMBER') != null) {
-        println "INFO: Build number detected - Adding suffix to .jar version"
-        println "INFO: Current build number: " + System.getenv('BUILD_NUMBER')
-        println "INFO: Version number: " + project.version
+    println "INFO: Build number detected - Adding suffix to .jar version"
+    println "INFO: Current build number: " + System.getenv('BUILD_NUMBER')
+    println "INFO: Version number: " + project.version
 }else {
-        println "INFO: No build number was detected...Feel free to ignore this if you are not a continuous intergration server."
-        println "INFO: Your version is: " + project.version
+    println "INFO: No build number was detected...Feel free to ignore this if you are not a continuous intergration server."
+    println "INFO: Your version is: " + project.version
 }
+
+version = "0.0.001.B-${buildnumber}"
+group = "com.technostar.tcbot"
 
 repositories {
 	mavenCentral()
@@ -58,6 +60,12 @@ jar {
  * Copies the dependencies to the lib directory in preparation for them to be added to a jar file
  */
 
+task postBuild(){
+    copyLibs()
+    copyScripts()
+    buildZip()
+}
+
 def copyLibs(){
     String s = File.separator
 
@@ -93,7 +101,8 @@ def copyScripts(){
 }
 
 def buildZip(){
-    zip{
+    println "Building zip."
+    task zip(type: Zip) {
         from 'build/libs'
         baseName = 'TCBot'
         classifier = 'zipped'
