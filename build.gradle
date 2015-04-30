@@ -50,19 +50,21 @@ jar {
 
 
 task publishZip(type: Zip) {
+    String s = File.separator
+
     copy {
-        into('build/libs/lib')
+        into('build' + s + 'libs' + s + 'lib')
         from configurations.runtime
         exclude 'TCBot-' + version + '.jar'
     }
 
     copy {
-        into('build/libs')
+        into('build' + s + 'libs')
         from 'include'
     }
 
-    File windows = new File('build/libs/launch.bat')
-    File linux = new File('build/libs/launch.sh')
+    File windows = new File('build' + s + 'libs' + s + 'launch.bat')
+    File linux = new File('build' + s + 'libs' + s + 'launch.sh')
 
     if(!windows.exists() || !linux.exists()){
         println "Could not find launch.bat or launch.sh"
@@ -77,30 +79,6 @@ task publishZip(type: Zip) {
     from 'build/libs'
     baseName = 'TCBot'
     classifier = 'zipped'
-}
-
-def copyRuntimeDependencies() {
-    /* into('build/output')
-     from configurations.runtime*/
-
-
-
-    updateRunScripts()
-}
-
-def updateRunScripts() {
-    File windows = new File('build/libs/launch.bat')
-    File linux = new File('build/libs/launch.sh')
-
-    if(!windows.exists() || !linux.exists()){
-        println "Could not find launch.bat or launch.sh"
-        return 0
-    }else{
-        println "Found launch.bat and launch.sh"
-    }
-
-    windows.text = windows.getText().replace('{JAR}', 'TCBot-' + project.version + '.jar')
-    linux.text = linux.getText().replace('{JAR}', 'TCBot-' + project.version + '.jar')
 }
 
 allprojects {
