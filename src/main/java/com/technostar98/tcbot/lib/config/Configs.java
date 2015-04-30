@@ -5,6 +5,7 @@ import com.technostar98.tcbot.api.lib.Configuration;
 import com.technostar98.tcbot.lib.Logger;
 
 import java.io.File;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -37,9 +38,14 @@ public class Configs {
 
     static{
         loadConfigs();
-        char fileSeparator = File.separatorChar;
-
-        String workingDir = Launcher.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+        char fileSeparator = '/';
+        String workingDir = "";
+		try {
+            workingDir = Launcher.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath();
+		} catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+		System.out.println(workingDir + "\t" + fileSeparator);
         workingDir = workingDir.substring(0, workingDir.lastIndexOf(fileSeparator));
         workingDir = workingDir.substring(0, workingDir.lastIndexOf(fileSeparator) + 1);
         String configDir = workingDir + "config" + fileSeparator;
