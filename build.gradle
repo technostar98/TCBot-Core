@@ -48,17 +48,22 @@ jar {
  * Copies the dependencies to the lib directory in preparation for them to be added to a jar file
  */
 
-
-task publishZip(type: Zip) {
+def copyLibs(){
     String s = File.separator
 
     copy {
+        println "Copying libs."
         into('build' + s + 'libs' + s + 'lib')
         from configurations.runtime
         exclude 'TCBot-' + version + '.jar'
     }
+}
+
+def copyScripts(){
+    String s = File.separator
 
     copy {
+        println "Copying run scripts."
         into('build' + s + 'libs')
         from 'include'
     }
@@ -67,28 +72,20 @@ task publishZip(type: Zip) {
     File linux = new File('build' + s + 'libs' + s + 'launch.sh')
 
     if(!windows.exists() || !linux.exists()){
-        println "Could not find launch.bat or launch.sh"
+        println "Could not find launch.bat or launch.sh."
         return 0
     }else{
-        println "Found launch.bat and launch.sh"
+        println "Found launch.bat and launch.sh. Replacing version and params."
     }
 
     windows.text = windows.getText().replace('{JAR}', 'TCBot-' + project.version + '.jar')
     linux.text = linux.getText().replace('{JAR}', 'TCBot-' + project.version + '.jar')
-
-    from 'build/libs'
-    baseName = 'TCBot'
-    classifier = 'zipped'
 }
 
-allprojects {
-    task listModules << {task -> println "$task.project.name" }
-}
-
-subprojects {
-    listModules << {println "- Depends on TCBot"}
-
-    dependencies{
-        //compile project(':TCBot')
+def buildZip(){
+    zip{
+        from 'build/libs'
+        baseName = 'TCBot'
+        classifier = 'zipped'
     }
 }
