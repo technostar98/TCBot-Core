@@ -12,6 +12,7 @@ public class MessengerPipeline {
     private int messagesPerSec, lastMessageID = 1, maxMessages = 5, minMessages = 1;
     private long milisBetween = 1000L;
     private HashMap<Integer, Long> messageTimes = new HashMap<>();
+    private boolean outputEnabled = true;
 
     public MessengerPipeline(String server, int limitPerSecond){
         this.server = server;
@@ -31,8 +32,8 @@ public class MessengerPipeline {
     }
 
     public void sendMessage(String message, CommandType type, WrappedEvent<MessageEvent<PircBotX>> wrappedEvent){
-        if(message != null && wrappedEvent.getEvent().getChannel().getName() != null && (shouldMessageSend() ||
-                type == CommandType.LEAVE)) {
+        if(isOutputEnabled() && message != null && wrappedEvent.getEvent().getChannel().getName()
+                != null && (shouldMessageSend() || type == CommandType.LEAVE)) {
             switch (type) {
                 case ACTION:
                     wrappedEvent.getEvent().getBot().sendIRC().action(wrappedEvent.getEvent().getChannel().getName(), message);
@@ -74,5 +75,13 @@ public class MessengerPipeline {
             lastMessageID++;
             return true;
         }
+    }
+
+    public void setOutputEnabled(boolean outputEnabled) {
+        this.outputEnabled = outputEnabled;
+    }
+
+    public boolean isOutputEnabled() {
+        return outputEnabled;
     }
 }

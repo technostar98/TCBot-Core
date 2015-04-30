@@ -3,7 +3,6 @@ package com.technostar98.tcbot.modules;
 import com.technostar98.tcbot.api.command.Command;
 import com.technostar98.tcbot.api.filter.ChatFilter;
 import com.technostar98.tcbot.command.Commands.*;
-import com.technostar98.tcbot.command.Filters.AntiSlapFilter;
 
 import java.util.HashMap;
 import java.util.List;
@@ -20,7 +19,6 @@ public class CommandPool {
         Command join = new JoinChannelCommand(null);
         Command leaveC = new LeaveChannelCommand(null);
         Command shutdown = new ShutdownCommand(null);
-        Command slap = new SlapCommand(null);
         Command filterToggle = new FilterToggleCommand(null);
         Command help = new HelpCommand(null);
         Command nickChange = new ChangeNickCommand(null);
@@ -30,15 +28,10 @@ public class CommandPool {
         botCommands.put(join.getName(), join);
         botCommands.put(leaveC.getName(), leaveC);
         botCommands.put(shutdown.getName(), shutdown);
-        botCommands.put(slap.getName(), slap);
         botCommands.put(filterToggle.getName(), filterToggle);
         botCommands.put(help.getName(), help);
         botCommands.put(nickChange.getName(), nickChange);
         botCommands.put(module.getName(), module);
-
-        ChatFilter antiSlap = new AntiSlapFilter(null);
-
-        botFilters.put(antiSlap.getName(), antiSlap);
     }
 
     public static boolean loadModule(String module){

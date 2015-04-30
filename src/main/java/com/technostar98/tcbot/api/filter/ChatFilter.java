@@ -24,6 +24,12 @@ public abstract class ChatFilter implements Comparable<ChatFilter>{
     public abstract FilterResponse onQuit(WrappedEvent<QuitEvent<PircBotX>> e);
     public abstract FilterResponse onSocketConnect(WrappedEvent<SocketConnectEvent<PircBotX>> e);
     public abstract FilterResponse onNickPinged(WrappedEvent<MessageEvent<PircBotX>> e);
+    public abstract FilterResponse onUserKick(WrappedEvent<KickEvent<PircBotX>> e);
+    public abstract FilterResponse onKicked(WrappedEvent<KickEvent<PircBotX>> e);
+
+    public void close(){
+
+    }
 
     public void setServer(String server) {
         this.server = server;

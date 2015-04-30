@@ -60,7 +60,6 @@ jar {
 build.doLast {
     copyLibs()
     copyScripts()
-    buildZip()
 }
 
 def copyLibs(){
@@ -97,11 +96,10 @@ def copyScripts(){
     linux.text = linux.getText().replace('{JAR}', 'TCBot-' + project.version + '.jar')
 }
 
-def buildZip(){
-    task zip(type: Zip) {
-        println "Building zip."
-        from 'build/libs'
-        baseName = 'TCBot'
-        classifier = 'zipped'
-    }
+
+task zip(type: Zip) {
+    println "Building zip."
+    from 'build/libs'
+    baseName = 'TCBot'
+    classifier = 'zipped'
 }

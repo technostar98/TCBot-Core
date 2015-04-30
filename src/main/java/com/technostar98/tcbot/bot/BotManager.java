@@ -1,6 +1,7 @@
 package com.technostar98.tcbot.bot;
 
 import com.technostar98.tcbot.lib.Logger;
+import com.technostar98.tcbot.lib.config.ServerConfiguration;
 import org.pircbotx.PircBotX;
 import org.pircbotx.exception.IrcException;
 import org.pircbotx.hooks.Listener;
@@ -19,6 +20,10 @@ public class BotManager {
 
     public static void createNewBot(String server, String... channels){
         bots.put(server, new IRCBot(BotConfigurationBuilder.buildConfig(server, channels), BotState.RUNNING));
+    }
+
+    public static void createNewBot(ServerConfiguration config){
+        bots.put(config.getServerAddress(), new IRCBot(BotConfigurationBuilder.buildConfig(config), BotState.RUNNING));
     }
 
     public static IRCBot getBot(String server){
@@ -46,7 +51,7 @@ public class BotManager {
             try {
                 for (Map.Entry<String, IRCBot> e : bots.entrySet()) {
                     e.getValue().getBot().stopBotReconnect();
-                    e.getValue().getBot().sendIRC().quitServer("Devin's a prick.");
+                    e.getValue().getBot().sendIRC().quitServer("Adios");
                     Thread.sleep(50L);
                     e.getValue().getBot().getInputParser().close();
 
@@ -72,6 +77,10 @@ public class BotManager {
                 IRCBot bot = getBot(server);
 
                 if(bot != null){
+                    ListenerPipeline l = getBotOutputPipe(server);
+                    l.messengerPipeline.setOutputEnabled(false);
+                    l.closeListener();
+
                     bot.getBot().stopBotReconnect();
                     bot.getBot().sendIRC().quitServer("Bye bye...");
                     Thread.sleep(50L);

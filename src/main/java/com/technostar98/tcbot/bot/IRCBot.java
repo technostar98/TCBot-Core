@@ -11,12 +11,13 @@ import java.util.HashMap;
 public class IRCBot {
     private PircBotX bot;
     private BotState state;
-    private String nick;
+    private String preferredNick;
     private HashMap<String, com.technostar98.tcbot.api.lib.Configuration<?>> configs = new HashMap<>();
 
     protected IRCBot(Configuration config, BotState state){
         this.bot = new PircBotX(config);
         this.state = state;
+        this.preferredNick = config.getName();
 
         if(!config.getServerHostname().equals("irc.twitch.tv")) {
             configs.put("nickChangeAllowed", new com.technostar98.tcbot.api.lib.Configuration<>(
@@ -43,12 +44,12 @@ public class IRCBot {
         this.state = state;
     }
 
-    public String getNick() {
-        return nick;
+    public String getPreferredNick() {
+        return preferredNick;
     }
 
-    public void setNick(String nick) {
-        this.nick = nick;
+    public void setPreferredNick(String preferredNick) {
+        this.preferredNick = preferredNick;
     }
 
     public com.technostar98.tcbot.api.lib.Configuration<?> getConfiguration(String key){

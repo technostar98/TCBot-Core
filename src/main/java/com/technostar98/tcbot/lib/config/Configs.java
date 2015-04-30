@@ -5,6 +5,7 @@ import com.technostar98.tcbot.api.lib.Configuration;
 import com.technostar98.tcbot.lib.Logger;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 public class Configs {
 
     public static ConcurrentHashMap<String, Configuration<?>> configurations = new ConcurrentHashMap<>();
+    private static HashMap<String,Configuration<?>> startupConfigurations = new HashMap<>();
 
     private static final Object ioLock = new Object();
 
@@ -300,5 +302,34 @@ public class Configs {
         }else{
             updateConfig(name, c.getValue());
         }
+    }
+
+    public static<U> Configuration<U> getCustomConfiguration(String name){
+        try{
+            return (Configuration<U>)getConfiguration(name);
+        }catch(Exception e){
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static<U> void addCustomConfiguration(String name, Configuration<U> configuration){
+        configurations.put(name, configuration);
+    }
+
+    public static Configuration<?> getStartupConfiguration(String name){
+        return startupConfigurations.getOrDefault(name, null);
+    }
+
+    public static Configuration<String> getStringStartupConfiguration(String name){
+        return (Configuration<String>)getStartupConfiguration(name);
+    }
+
+    public static Configuration<String[]> getStringArrayStartupConfiguration(String name){
+        return (Configuration<String[]>)getStartupConfiguration(name);
+    }
+
+    public static void setStartupConfigurations(HashMap<String, Configuration<?>> configs){
+        startupConfigurations = configs;
     }
 }

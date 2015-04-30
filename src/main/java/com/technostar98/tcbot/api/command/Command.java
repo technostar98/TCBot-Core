@@ -58,6 +58,10 @@ public abstract class Command {
                 && event.getUser().getUserLevels(event.getChannel()).stream().anyMatch(ul -> requiredULs.contains(ul));
     }
 
+    public void close(){
+        return;
+    }
+
     public abstract String getMessage(WrappedEvent<MessageEvent<PircBotX>> event);
     public abstract boolean runCommand(WrappedEvent<MessageEvent<PircBotX>> event);
     public abstract String getHelpMessage();

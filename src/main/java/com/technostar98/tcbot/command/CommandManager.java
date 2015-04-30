@@ -91,7 +91,7 @@ public class CommandManager {
     }
 
     public String enactCommand(CommandType type, String name, WrappedEvent<MessageEvent<PircBotX>> event){
-//        System.out.println("COMMAND: " + name + "\tUSER: " + event.getEvent().getUser().getNick());
+//        System.out.println("COMMAND: " + name + "\tUSER: " + event.getEvent().getUser().getPreferredNick());
 
         List<Command> matched = commands.parallelStream().filter(c -> /*c.getCommandType() == type &&*/
                 (c.getName().equals(name) || c.getAlias().equals(name))).collect(Collectors.toList());
@@ -116,8 +116,14 @@ public class CommandManager {
             HashMap<String, Command> commandsM = m.getCommands();
             HashMap<String, ChatFilter> filtersM = m.getFilters();
 
-            for(String s : commandsM.keySet()) addCommand(commandsM.get(s));
-            for(String s : filtersM.keySet()) addFilter(filtersM.get(s));
+            for(String s : commandsM.keySet()){
+                addCommand(commandsM.get(s));
+                getCommand(s).setServer(server);
+            }
+            for(String s : filtersM.keySet()){
+                addFilter(filtersM.get(s));
+                getFilter(s).setServer(server);
+            }
         }
     }
 

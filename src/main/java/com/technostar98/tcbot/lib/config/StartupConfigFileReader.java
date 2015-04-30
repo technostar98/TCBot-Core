@@ -1,5 +1,6 @@
 package com.technostar98.tcbot.lib.config;
 
+import com.technostar98.tcbot.api.lib.Configuration;
 import com.technostar98.tcbot.lib.ITextFileIO;
 import com.technostar98.tcbot.lib.Logger;
 
@@ -7,13 +8,12 @@ import java.io.*;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
-@Deprecated
-public class StartupConfigFileReader implements ITextFileIO<ServerConfiguration>{
-    private HashMap<String, ServerConfiguration> configs = new HashMap<>();
+public class StartupConfigFileReader implements ITextFileIO<Configuration<?>>{
+    private HashMap<String, Configuration<?>> configs = new HashMap<>();
     private File configFile = null;
     private BufferedReader input = null;
-    private PrintWriter output = null;
     private final Object ioLock = new Object();
 
     public StartupConfigFileReader(String url){
@@ -31,15 +31,10 @@ public class StartupConfigFileReader implements ITextFileIO<ServerConfiguration>
                 configFile = new File(url);
 
                 if (!configFile.exists()) {
-                    if (!configFile.mkdirs()) {
-                        return false;
-                    } else {
-                        configFile.createNewFile();
-                    }
+                    configFile.createNewFile();
                 }
 
                 input = new BufferedReader(new FileReader(configFile));
-                output = new PrintWriter(new BufferedWriter(new FileWriter(configFile)));
             } catch (IOException e) {
                 Logger.error("Could create or open file at directory: " + url);
                 e.printStackTrace();
@@ -62,58 +57,71 @@ public class StartupConfigFileReader implements ITextFileIO<ServerConfiguration>
     }
 
     /**
-     * The layout of a server configuration file is as goes:
-     * S: serverName
-     * A: serverAddress
-     * N: nick
-     * P: password
-     * J: channel1
-     * J: channel2
-     * J: etc...
-     * (Space signifying end of one config and start of another)
-     * @throws IOException
+     * Fields used by TCBot-Core will be:
+     * <p>dbaddress, dbprofile, dbpassword, superusers</p>
+     * @throws java.io.IOException
      */
     @Override
     public void readFileContents() throws IOException{
         synchronized (ioLock){
             String line = null;
-            ServerConfiguration sc = null;
 
             while((line = input.readLine()) != null){
+                if(line.matches("\\w++=\\{?.++}?")){
+                    String[] words = line.split("=");
+                    String name = words[0];
+                    String value = words[1];
 
+                    if(value.startsWith("{") && value.endsWith("}")) {
+                        value = value.substring(1, value.length() - 1);
+                        String[] values = value.split(",");
+
+                        for(int i = 0; i < values.length; i++){
+                            values[i] = values[i].trim();
+                        }
+
+                        Configuration<String[]> configuration = new Configuration<>(name, values, String[].class);
+                        configs.put(name, configuration);
+                    }else{
+                        Configuration<String> configuration = new Configuration<>(name, value, String.class);
+                        configs.put(name, configuration);
+                    }
+                }
             }
         }
     }
 
     @Override
     public void saveFileContents() {
-        synchronized (ioLock){
-
-        }
+        return; //We don't want to ever save over the startup configuration file, only read it.
     }
 
     @Override
-    public HashMap<String, ServerConfiguration> getMappedContents() {
-        return null;
+    public HashMap<String, Configuration<?>> getMappedContents() {
+        return this.configs;
     }
 
     @Override
     public List<String> getFields() {
-        return null;
+        return configs.keySet().stream().collect(Collectors.toList());
     }
 
     @Override
     public void closeFile() {
+        try {
+            input.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void setContents(HashMap<String, Configuration<?>> contents) {
 
     }
 
     @Override
-    public void setContents(HashMap<String, ServerConfiguration> contents) {
-        this.configs = contents;
-    }
+    public void addField(String key, Configuration<?> value) {
 
-    @Override
-    public void addField(String key, ServerConfiguration value) {
-        configs.put(key, value);
     }
 }
