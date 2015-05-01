@@ -94,7 +94,7 @@ def copyScripts(){
     }
 
     windows.text = windows.getText().replace('{JAR}', 'TCBot-' + project.version + '.jar')
-    linux.text = linux.getText().replace('{JAR}', 'TCBot-' + project.version + '.jar')
+    linux.text = linux.getText().replace('{JAR}', 'TCBot-' + project.version + '.jar').replace("\r\n", "\n")
 }
 
 def updateModuleBuild(){

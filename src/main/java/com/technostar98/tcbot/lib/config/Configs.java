@@ -38,14 +38,16 @@ public class Configs {
 
     static{
         loadConfigs();
+
         char fileSeparator = '/';
-        String workingDir = "";
+        String workingDir = null;
+
         try {
             workingDir = Launcher.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath();
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
-		System.out.println(workingDir + "\t" + fileSeparator);
+
         workingDir = workingDir.substring(0, workingDir.lastIndexOf(fileSeparator));
         workingDir = workingDir.substring(0, workingDir.lastIndexOf(fileSeparator) + 1);
         String configDir = workingDir + "config" + fileSeparator;
