@@ -60,6 +60,7 @@ jar {
 build.doLast {
     copyLibs()
     copyScripts()
+    updateModuleBuild()
 }
 
 def copyLibs(){
@@ -96,10 +97,45 @@ def copyScripts(){
     linux.text = linux.getText().replace('{JAR}', 'TCBot-' + project.version + '.jar')
 }
 
+def updateModuleBuild(){
+    String s = File.separator
+
+    copy{
+        from 'moduleInclude'
+        into 'build/module'
+    }
+
+    File script = new File('build' + s + 'module' + s + 'build.gradle')
+
+    if(!script.exists()){
+        println 'Could not find module build script.'
+        return 0
+    }else{
+        println 'Found build.gradle in moduleInclude, now updating.'
+    }
+
+    script.text = script.getText().replace('{BOT_VERSION}', project.version)
+}
+
 
 task zip(type: Zip) {
     println "Building zip."
     from 'build/libs'
     baseName = 'TCBot'
     classifier = 'zipped'
+}
+
+task zipModule(type: Zip){
+    println "Building module zip."
+
+    baseName = 'TCBot_Module'
+    appendix = 'base'
+    classifier = 'zipped'
+
+    from ('build/module'){
+        into ''
+    }
+    from ('build/libs/TCBot-' + project.version +  '.jar'){
+        into 'lib/'
+    }
 }

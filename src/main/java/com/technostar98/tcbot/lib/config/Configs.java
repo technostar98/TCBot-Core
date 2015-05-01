@@ -40,9 +40,9 @@ public class Configs {
         loadConfigs();
         char fileSeparator = '/';
         String workingDir = "";
-		try {
+        try {
             workingDir = Launcher.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath();
-		} catch (URISyntaxException e) {
+        } catch (URISyntaxException e) {
             e.printStackTrace();
         }
 		System.out.println(workingDir + "\t" + fileSeparator);
