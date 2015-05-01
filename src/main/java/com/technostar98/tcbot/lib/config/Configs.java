@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
  * <p>workingDir - String</p>
  * <p>configDir - String</p>
  * <p>moduleDir - String</p>
+ * <p>logDir - String</p>
  * <p>version - String</p>
  * <p>startTime - Long</p>
  *
@@ -52,15 +53,19 @@ public class Configs {
         workingDir = workingDir.substring(0, workingDir.lastIndexOf(fileSeparator) + 1);
         String configDir = workingDir + "config" + fileSeparator;
         String moduleDir = workingDir + "modules" + fileSeparator;
+        String logDir = workingDir + "logs" + fileSeparator;
 
         File dir = new File(configDir);
         if(!dir.exists()) dir.mkdir();
         dir = new File(moduleDir);
         if(!dir.exists()) dir.mkdir();
+        dir = new File(logDir);
+        if(!dir.exists()) dir.mkdir();
 
         addStringConfiguration("workingDir", workingDir);
         addStringConfiguration("configDir", configDir);
         addStringConfiguration("moduleDir", moduleDir);
+        addStringConfiguration("logDir", logDir);
         addStringConfiguration("version", "${VERSION}");
         addLongConfiguration("startTime", System.currentTimeMillis());
     }

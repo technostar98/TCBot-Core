@@ -60,8 +60,11 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
 
         try {
             for (String s : commandManagers.keySet()) {
-                commandManagers.get(s).getFilters().forEach(f -> f.close());
-                commandManagers.get(s).getCommands().forEach(c -> c.close());
+                CommandManager cm = commandManagers.get(s);
+                if(cm.getFilters() != null)
+                    cm.getFilters().forEach(f -> f.close());
+                if(cm.getCommands() != null)
+                    cm.getCommands().forEach(c -> c.close());
             }
         }catch (Exception e){
             e.printStackTrace();
