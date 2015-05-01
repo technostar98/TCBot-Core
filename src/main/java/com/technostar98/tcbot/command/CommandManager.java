@@ -2,6 +2,7 @@ package com.technostar98.tcbot.command;
 
 import com.technostar98.tcbot.api.command.Command;
 import com.technostar98.tcbot.api.command.CommandType;
+import com.technostar98.tcbot.api.command.TextCommand;
 import com.technostar98.tcbot.api.filter.ChatFilter;
 import com.technostar98.tcbot.api.lib.WrappedEvent;
 import com.technostar98.tcbot.modules.Module;
@@ -30,6 +31,7 @@ public class CommandManager {
     //TODO add modules support
     private ArrayList<Command> commands = new ArrayList<>();
     private ArrayList<ChatFilter> filters = new ArrayList<>();
+    private ArrayList<TextCommand> textCommands = new ArrayList<>();
     private HashMap<String, Object> channelValues = new HashMap<>();
     private ArrayList<String> modulesLoaded = new ArrayList<>();
     private final String channel, server;
@@ -41,11 +43,7 @@ public class CommandManager {
     }
 
     public List<Command> getCommands(String name){
-        List<Command> matched = commands.parallelStream().filter(c -> c.getName().equals(name)).collect(Collectors.toList());
-        if(!matched.isEmpty())
-            return matched;
-        else
-            return null;
+        return commands.stream().filter(c -> c.getName().equals(name)).collect(Collectors.toList());
     }
 
     public List<Command> getCommands(){
@@ -53,11 +51,7 @@ public class CommandManager {
     }
 
     public List<ChatFilter> getFilters(String name){
-        List<ChatFilter> matched = filters.parallelStream().filter(f -> f.getName().equals(name)).collect(Collectors.toList());
-        if (!matched.isEmpty())
-            return matched;
-        else
-            return null;
+        return filters.stream().filter(f -> f.getName().equals(name)).collect(Collectors.toList());
     }
 
     public List<ChatFilter> getFilters(){
@@ -79,15 +73,11 @@ public class CommandManager {
     }
 
     public List<String> getModules(){
-        return this.modulesLoaded.isEmpty() ? null : this.modulesLoaded;
+        return this.modulesLoaded;
     }
 
     public List<String> getModules(String name){
-        List<String> modules = modulesLoaded.stream().filter(m -> m.equals(name)).collect(Collectors.toList());
-        if(!modules.isEmpty())
-            return modules;
-        else
-            return null;
+        return modulesLoaded.stream().filter(m -> m.equals(name)).collect(Collectors.toList());
     }
 
     public String getModule(String name){
@@ -96,6 +86,26 @@ public class CommandManager {
             return modules.get(0);
         else
             return null;
+    }
+
+    public List<TextCommand> getTextCommands(){
+        return this.textCommands;
+    }
+
+    public List<TextCommand> getTextCommands(String name){
+        return this.textCommands.parallelStream().filter(t -> t.getName().equals(name)).collect(Collectors.toList());
+    }
+
+    public TextCommand getTextCommand(String name){
+        List<TextCommand> t = getTextCommands(name);
+        if(t != null && !t.isEmpty())
+            return t.get(0);
+        else
+            return null;
+    }
+
+    public HashMap<String, Object> getChannelValues(){
+        return this.channelValues;
     }
 
     public String enactCommand(CommandType type, String name, WrappedEvent<MessageEvent<PircBotX>> event){
@@ -135,6 +145,17 @@ public class CommandManager {
         }
     }
 
+    public void addTextCommand(TextCommand textCommand){
+        TextCommand tc = getTextCommand(textCommand.name);
+
+        if(tc == null){
+            textCommands.add(textCommand);
+        }else{
+            textCommands.remove(textCommands.indexOf(tc));
+            textCommands.add(textCommand);
+        }
+    }
+
     public String getChannel() {
         return channel;
     }
@@ -165,6 +186,11 @@ public class CommandManager {
         }
 
         modulesLoaded.remove(name);
+    }
+
+    public void removeTextCommand(String name){
+        if(getTextCommand(name) != null)
+            textCommands.remove(textCommands.indexOf(getTextCommand(name)));
     }
 
     public void setValue(String key, Object value){

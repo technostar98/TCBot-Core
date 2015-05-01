@@ -26,7 +26,7 @@ public class CrashLogBuilder {
         LocalDateTime systemTime = LocalDateTime.now();
         Timestamp programTime = new Timestamp(System.currentTimeMillis() - Configs.getLongConfiguration("startTime").getValue(), null);
 
-        File log = new File(Configs.getStringConfiguration("logDir").getValue() + (systemTime.toLocalDate() + "_" + systemTime.toLocalTime()) + ".log");
+        File log = new File(Configs.getStringConfiguration("logDir").getValue() + "crash/" + (systemTime.toLocalDate() + "_" + systemTime.toLocalTime()) + ".log");
         try {
             log.createNewFile();
             PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(log)));

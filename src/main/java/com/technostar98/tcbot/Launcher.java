@@ -66,7 +66,7 @@ public class Launcher {
 
             CrashLogBuilder b = new CrashLogBuilder(e);
             b.buildLog();
-            
+
             System.exit(-1);
         }
     }

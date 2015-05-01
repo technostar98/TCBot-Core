@@ -32,6 +32,7 @@ public class CommandPool {
         Command help = new HelpCommand(null);
         Command nickChange = new ChangeNickCommand(null);
         Command module = new ModuleControllerCommand(null);
+        Command textControl = new TextCommandControllerCommand(null);
 
         botCommands.put(quit.getName(), quit);
         botCommands.put(join.getName(), join);
@@ -41,6 +42,7 @@ public class CommandPool {
         botCommands.put(help.getName(), help);
         botCommands.put(nickChange.getName(), nickChange);
         botCommands.put(module.getName(), module);
+        botCommands.put(textControl.getName(), textControl);
     }
 
     public static boolean loadModule(String module){

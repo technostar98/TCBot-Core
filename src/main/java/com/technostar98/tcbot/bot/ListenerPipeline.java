@@ -1,10 +1,12 @@
 package com.technostar98.tcbot.bot;
 
 import com.technostar98.tcbot.api.command.Command;
+import com.technostar98.tcbot.api.command.TextCommand;
 import com.technostar98.tcbot.api.filter.ChatFilter;
 import com.technostar98.tcbot.api.filter.FilterResponse;
 import com.technostar98.tcbot.command.CommandManager;
 import com.technostar98.tcbot.api.lib.WrappedEvent;
+import com.technostar98.tcbot.command.TextCommandParser;
 import com.technostar98.tcbot.lib.Logger;
 import com.technostar98.tcbot.modules.CommandPool;
 import org.pircbotx.PircBotX;
@@ -216,6 +218,7 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
                         int endCommandIndex = event.getMessage().contains(" ") ? event.getMessage().indexOf(" ") : event.getMessage().length();
                         String commandName = event.getMessage().substring(1, endCommandIndex);
                         Command c = cm.getCommand(commandName);
+                        TextCommand tc = cm.getTextCommand(commandName);
                         WrappedEvent<MessageEvent<PircBotX>> wrappedEvent = new WrappedEvent<>(event);
 
                         if (c != null && c.isUserAllowed(event)) {
@@ -223,6 +226,9 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
 //                            System.out.println("c.message is null: " + (c.getMessage(wrappedEvent) == null));
 //                            System.out.println("Wrapped message is null: " + (wrappedEvent == null));
                             this.messengerPipeline.sendMessage(c.getMessage(wrappedEvent), c.commandType, wrappedEvent);
+                        }else if(tc != null && tc.isUserAllowed(event)){
+                            this.messengerPipeline.sendMessage(TextCommandParser.parseCommand(tc.getMessage(wrappedEvent), wrappedEvent, cm.getChannelValues()),
+                                    tc.getCommandType(), wrappedEvent);
                         }
                     }
                 }
