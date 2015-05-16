@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
  * <p>moduleDir - String</p>
  * <p>logDir - String</p>
  * <p>version - String</p>
- * <p>startTime - Long</p>
  *
  * <p>Created by Bret 'Horfius' Dusseault in 2015.
  * All code in this file is open-source and
@@ -30,6 +29,7 @@ import java.util.stream.Collectors;
  *
  * @author Bret 'Horfius' Dusseault
  */
+@SuppressWarnings("unchecked, unused")
 public class Configs {
 
     public static ConcurrentHashMap<String, Configuration<?>> configurations = new ConcurrentHashMap<>();
@@ -67,7 +67,6 @@ public class Configs {
         addStringConfiguration("moduleDir", moduleDir);
         addStringConfiguration("logDir", logDir);
         addStringConfiguration("version", "${VERSION}");
-        addLongConfiguration("startTime", System.currentTimeMillis());
     }
 
     public static void loadConfigs(){

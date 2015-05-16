@@ -22,7 +22,7 @@ public class Stats {
     public static ArrayList<Configuration<?>> stats = new ArrayList<>();
 
     static{
-
+        addStat(new Configuration<>("startTime", System.currentTimeMillis(), Long.class));
     }
 
     public static void addStat(Configuration newStat){

@@ -1,17 +1,20 @@
 package com.technostar98.tcbot;
 
 import com.technostar98.tcbot.bot.BotManager;
+import com.technostar98.tcbot.io.ConfigFile;
+import com.technostar98.tcbot.io.ServerConfigFile;
 import com.technostar98.tcbot.lib.ArgumentConfiguration;
 import com.technostar98.tcbot.lib.ArgumentParser;
 import com.technostar98.tcbot.lib.CrashLogBuilder;
 import com.technostar98.tcbot.lib.config.Configs;
 import com.technostar98.tcbot.lib.config.ServerConfiguration;
-import com.technostar98.tcbot.lib.config.StartupConfigFileReader;
+import com.technostar98.tcbot.lib.config.Stats;
 import com.technostar98.tcbot.lib.exceptions.MissingArgumentException;
 
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>Main class for launching or relaunching the bot and all of it's other components.</p>
@@ -30,7 +33,7 @@ public class Launcher {
         //TODO Load configs/stats
 
         try {
-            Configs.getLongConfiguration("startTime").getValue();//Make sure <cinit> is called in configs before anything else
+            Stats.getStat("startTime").getValue();//Make sure <cinit> is called in configs before anything else
 
             List<ArgumentConfiguration> argsConfigs = new ArrayList<>();
             argsConfigs.add(new ArgumentConfiguration("debugMode", "--", false));
@@ -43,20 +46,31 @@ public class Launcher {
                 System.exit(-1);
             }
 
-            StartupConfigFileReader startupConfigFileReader = new StartupConfigFileReader(Configs.getStringConfiguration("configDir").getValue() + "startup.cfg");
-            try {
-                startupConfigFileReader.readFileContents();
-                startupConfigFileReader.closeFile();
-            } catch (IOException e) {
-                e.printStackTrace();
+            ConfigFile config = new ConfigFile(Configs.getStringConfiguration("configDir").getValue() + "configs.json");
+            config.readFileContents();
+            if(!config.isInitialized()) {
+                config.setContents(Configs.configurations);
+                config.saveFileContents();
+            }else{
+                Configs.setStartupConfigurations((HashMap)config.getMappedContents());
             }
-            Configs.setStartupConfigurations(startupConfigFileReader.getMappedContents());
 
-            ServerConfiguration esper = new ServerConfiguration("Espernet", "irc.esper.net", "TCBot", "TEMP", "#TechnoDev");
+            ServerConfigFile serverConfigFile = new ServerConfigFile();
+            serverConfigFile.readFileContents();
+            if(serverConfigFile.isInitialized()){
+                Map<String, ServerConfiguration> serverConfigs = serverConfigFile.getMappedContents();
+                for(String s : serverConfigs.keySet()) {
+                    BotManager.createNewBot(serverConfigs.get(s));
+                }
+            }else{
+                ServerConfiguration esper = new ServerConfiguration("Espernet", "irc.esper.net", "TCBot", "TEMP", "#TechnoDev", "#TheSixPack");
+                serverConfigFile.addField(esper.getServerName(), esper);
+                serverConfigFile.saveFileContents();
 
-            BotManager.createNewBot(esper);
+                BotManager.createNewBot(esper);
+            }
 //        BotManager.createNewBot("irc.technostarhosting.com", "#dev", "#TCBot");
-//            BotManager.start();
+            BotManager.start();
 
             if (ArgumentParser.getArgConfig("debugMode").asBoolean()) {
                 BotManager.startDebugMonitor();

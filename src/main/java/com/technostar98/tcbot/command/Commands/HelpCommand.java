@@ -2,6 +2,7 @@ package com.technostar98.tcbot.command.Commands;
 
 import com.technostar98.tcbot.api.command.Command;
 import com.technostar98.tcbot.api.command.CommandType;
+import com.technostar98.tcbot.api.command.TextCommand;
 import com.technostar98.tcbot.api.filter.ChatFilter;
 import com.technostar98.tcbot.api.lib.WrappedEvent;
 import com.technostar98.tcbot.bot.BotManager;
@@ -49,6 +50,7 @@ public class HelpCommand extends Command{
                 }else if(words[1].equals("--allCommands")){
                     StringJoiner j = new StringJoiner(", ", "{", "}");
                     for(Command c : cm.getCommands()) j.add(c.getName());
+                    for(TextCommand c : cm.getTextCommands()) j.add(c.getName());
 
                     return "Commands for this channel are: " + j.toString();
                 }else if(words[1].equals("--allFilters")){

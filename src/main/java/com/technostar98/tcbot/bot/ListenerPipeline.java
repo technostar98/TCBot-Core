@@ -17,6 +17,7 @@ import org.pircbotx.hooks.types.*;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * <p>Will hold all of the listeners for a bot instance</p>
@@ -53,6 +54,10 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
         return commandManagers.getOrDefault(channel, null);
     }
 
+    public List<CommandManager> getCommandManagers(){
+        return commandManagers.keySet().stream().map(s -> getCommandManager(s)).collect(Collectors.toList());
+    }
+
     public void removeCommandManager(String channel){
         commandManagers.remove(channel);
     }
@@ -63,6 +68,7 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
         try {
             for (String s : commandManagers.keySet()) {
                 CommandManager cm = commandManagers.get(s);
+                cm.saveChannelData();
                 if(cm.getFilters() != null)
                     cm.getFilters().forEach(f -> f.close());
                 if(cm.getCommands() != null)
@@ -159,16 +165,16 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
     @Override
     public void onKick(KickEvent<PircBotX> event) throws Exception {
         if(event.getRecipient().getNick().equals(event.getBot().getNick())) {
-            commandManagers.keySet().stream().forEach(cm ->{
-                if(getCommandManager(cm) != null){
-                    if(getCommandManager(cm).getFilters() != null){
-                        getCommandManager(cm).getFilters().forEach(f -> f.onKicked(new WrappedEvent<>(event)));
+            commandManagers.keySet().stream().forEach(cm -> {
+                CommandManager commandManager = getCommandManager(cm);
+                if (commandManager != null) {
+                    if (commandManager.getFilters() != null) {
+                        commandManager.getFilters().forEach(f -> f.onKicked(new WrappedEvent<>(event)));
                     }
-                }else{
+                } else {
                     System.out.println("Command manager for " + cm + " is null");
                 }
             });
-            commandManagers.remove(event.getChannel().getName());
         }else{
             CommandManager cm = getCommandManager(event.getChannel().getName());
             if(cm.getFilters() != null)

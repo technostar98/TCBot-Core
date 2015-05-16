@@ -44,4 +44,9 @@ public class Configuration<U> {
     public void setValue(U value) {
         this.value = value;
     }
+
+    @Override
+    public String toString() {
+        return "Configuration{" + name + ", " + type.getName() + ", " + value + "}";
+    }
 }

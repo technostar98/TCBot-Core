@@ -25,6 +25,7 @@ public class BotManager {
     private static HashMap<String, IRCBot> bots = new HashMap<>(); //Bots by server
     private static final Object lock = new Object();
     private static boolean debuggerClosed = false;
+    private static Thread dataManager = null;
 
     public static void createNewBot(String server, String... channels){
         bots.put(server, new IRCBot(BotConfigurationBuilder.buildConfig(server, channels), BotState.RUNNING));
@@ -51,12 +52,27 @@ public class BotManager {
                 run.start();
             }
 
+            dataManager = new Thread(() -> {
+                while(bots.size() > 0){
+                    try {
+                        Thread.sleep(600000);
+                    } catch (InterruptedException e) {
+                        //ignore
+                    }
+
+                    bots.keySet().forEach(s -> getBotOutputPipe(s).getCommandManagers().forEach(c -> c.saveChannelData()));
+                }
+            });
+            dataManager.start();
         }
     }
 
     public static void stop(){
         synchronized (lock) {
             try {
+                dataManager.interrupt();
+                while(dataManager.getState() != Thread.State.TIMED_WAITING){}
+
                 for (Map.Entry<String, IRCBot> e : bots.entrySet()) {
                     e.getValue().getBot().stopBotReconnect();
                     e.getValue().getBot().sendIRC().quitServer("Adios");
@@ -122,7 +138,7 @@ public class BotManager {
 
     private static void scheduleDebuggerShutdown(){
         if(bots.size() == 0) debuggerClosed = true;
-        else Logger.warning(Thread.currentThread().getName() + " tried to shutdown debugger when it is still active.");
+        else Logger.warning(Thread.currentThread().getName() + " tried to shutdown debugger when bots are still active.");
     }
 
     public static void forceDebuggerShutdown(){

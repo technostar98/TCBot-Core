@@ -44,9 +44,11 @@ public class TextCommandControllerCommand extends Command {
                 if(testTC == null) {
                     List<UserLevel> userLevels = new LinkedList<>();
                     String commandMessage;
+                    boolean userAllowed = false;
 
                     if (message.length >= 4) {
                         if (!message[3].startsWith("--ul=")) {
+                            userAllowed = true;
                             StringJoiner joiner = new StringJoiner(" ");
 
                             for (int i = 3; i < message.length; i++) {
@@ -60,18 +62,34 @@ public class TextCommandControllerCommand extends Command {
                                 List<UserLevel> ulList = new LinkedList<>();
 
                                 for (String s : uls) {
-                                    UserLevel ul = UserLevel.valueOf(s);
-                                    if (ul != null && !ulList.contains(ul))
-                                        ulList.add(ul);
+                                    s = s.toUpperCase();
+
+                                    if(s.equals("USER")){
+                                        userAllowed = true;
+                                        continue;
+                                    }else if(s.equals("MOD")){
+                                        if(!ulList.contains(UserLevel.OP)) ulList.add(UserLevel.OP);
+                                        continue;
+                                    }
+
+                                    try {
+                                        UserLevel ul = UserLevel.valueOf(s);
+
+                                        if (ul != null && !ulList.contains(ul))
+                                            ulList.add(ul);
+                                    }catch (Exception e){
+                                        e.printStackTrace();
+                                        return "User level " + s + " is not a valid user level";
+                                    }
                                 }
 
-                                if (ulList.size() <= 0) {
-                                    return "Specify userlevels, not just put the tag there.";
+                                if (ulList.size() <= 0 && !userAllowed) {
+                                    return "Specify user levels, not just put the tag there.";
                                 } else {
                                     userLevels = ulList;
                                 }
 
-                                if (message.length >= 5) {
+                                if(message.length >= 5) {
                                     StringJoiner joiner = new StringJoiner(" ");
 
                                     for (int i = 4; i < message.length; i++) {
@@ -79,19 +97,23 @@ public class TextCommandControllerCommand extends Command {
                                     }
 
                                     commandMessage = joiner.toString();
-                                } else {
+                                }else{
                                     return "Specify a message to send.";
                                 }
                             } else {
-                                return "Specify userlevels, not just put the tag there.";
+                                return "Specify user levels with the tag.";
                             }
                         }
                     } else {
-                        return "Specify userlevels and a message.";
+                        return "Specify user levels and a message.";
                     }
 
-                    TextCommand tc = new TextCommand(target, getServer(), commandMessage, (UserLevel[]) userLevels.toArray());
-                    if (userLevels.isEmpty()) tc.setAcceptAllUsers(true);
+                    Object[] ulsTemp = userLevels.toArray();
+                    UserLevel[] ulsArray = new UserLevel[ulsTemp.length];
+                    for(int i = 0; i < ulsTemp.length; i++) ulsArray[i] = (UserLevel) ulsTemp[i];
+
+                    TextCommand tc = new TextCommand(target, getServer(), commandMessage, ulsArray);
+                    if (userLevels.isEmpty() || userAllowed) tc.setAcceptAllUsers(true);
                     cm.addTextCommand(tc);
 
                     return "Successfully created command " + tc.getName();
@@ -100,7 +122,8 @@ public class TextCommandControllerCommand extends Command {
                 }
             }else if(action.equals("remove")){
                 TextCommand tc = cm.getTextCommand(target);
-                if(tc != null){
+
+                if(tc == null){
                     return "Command " + target + " does not exist.";
                 }else{
                     cm.removeTextCommand(target);
@@ -109,6 +132,9 @@ public class TextCommandControllerCommand extends Command {
                 }
             }else if(action.equals("edit")){
                 TextCommand tc = cm.getTextCommand(target);
+                List<UserLevel> ulList = new LinkedList<>();
+                String commandMessage = tc.getMessage(null);
+                boolean userAllowed = false;
 
                 if(tc == null){
                     return "Command " + target + " does not exist.";
@@ -121,24 +147,36 @@ public class TextCommandControllerCommand extends Command {
                                 joiner.add(message[i]);
                             }
 
-                            tc.setMessage(joiner.toString());
-
-
+                            commandMessage = joiner.toString();
+                            ulList = tc.getRequiredULs();
                         }else{
                             if(message[3].length() > 5) {
                                 String[] uls = message[3].substring(5, message[3].length()).split(",");
-                                List<UserLevel> ulList = new LinkedList<>();
 
                                 for(String s : uls){
-                                    UserLevel ul = UserLevel.valueOf(s);
-                                    if(ul != null && !ulList.contains(ul))
-                                        ulList.add(ul);
+                                    s = s.toUpperCase();
+
+                                    if(s.equals("USER")){
+                                        userAllowed = true;
+                                        continue;
+                                    }else if(s.equals("MOD")){
+                                        if(!ulList.contains(UserLevel.OP)) ulList.add(UserLevel.OP);
+                                        continue;
+                                    }
+
+                                    try {
+                                        UserLevel ul = UserLevel.valueOf(s);
+
+                                        if (ul != null && !ulList.contains(ul))
+                                            ulList.add(ul);
+                                    }catch (Exception e){
+                                        e.printStackTrace();
+                                        return "User level " + s + " is not a valid user level";
+                                    }
                                 }
 
-                                if(ulList.size() <= 0){
-                                    return "Specify userlevels, not just put the tag there.";
-                                }else{
-                                    tc.setRequiredUserLevels(ulList);
+                                if(ulList.size() <= 0 && !userAllowed){
+                                    return "Specify user levels with the tag.";
                                 }
 
                                 if (message.length >= 5) {
@@ -148,24 +186,27 @@ public class TextCommandControllerCommand extends Command {
                                         joiner.add(message[i]);
                                     }
 
-                                    tc.setMessage(joiner.toString());
+                                    commandMessage = joiner.toString();
                                 }
                             }else{
-                                return "Specify userlevels, not just put the tag there.";
+                                return "Specify user levels, not just put the tag there.";
                             }
                         }
                     }else{
-                        return "Specify userlevels or a message.";
+                        return "Specify user levels or a message.";
                     }
                 }
-            }else{
+
+                tc.setAcceptAllUsers(userAllowed);
+                tc.setRequiredUserLevels(ulList);
+                tc.setMessage(commandMessage);
                 return "Successfully update command " + target;
+            }else{
+                return "Missing arguments, an action.";
             }
         }else{
             return null;
         }
-
-        return null;
     }
 
     @Override
@@ -175,6 +216,6 @@ public class TextCommandControllerCommand extends Command {
 
     @Override
     public String getHelpMessage() {
-        return "!command {add|remove|edit} name(without the '!') <--ul=ul1,ul2 (must NOT have spaces in between userlevels; options are op, voice(non-twitch), and user, user assumed if argument is absent)> <commandText (API info WIP)>";
+        return "!command {add|remove|edit} name(without the '!') <--ul=ul1,ul2 (must NOT have spaces in between user levels; options are op, voice(non-twitch), and user, user assumed if argument is absent)> <commandText (API info WIP)>";
     }
 }

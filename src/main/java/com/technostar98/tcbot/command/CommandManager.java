@@ -1,15 +1,19 @@
 package com.technostar98.tcbot.command;
 
+import com.google.common.collect.Maps;
 import com.technostar98.tcbot.api.command.Command;
 import com.technostar98.tcbot.api.command.CommandType;
 import com.technostar98.tcbot.api.command.TextCommand;
 import com.technostar98.tcbot.api.filter.ChatFilter;
 import com.technostar98.tcbot.api.lib.WrappedEvent;
+import com.technostar98.tcbot.io.ChannelValuesFile;
+import com.technostar98.tcbot.io.CommandsFile;
 import com.technostar98.tcbot.modules.Module;
 import com.technostar98.tcbot.modules.ModuleManager;
 import org.pircbotx.PircBotX;
 import org.pircbotx.hooks.events.MessageEvent;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,7 +32,6 @@ import java.util.stream.Collectors;
  * @author Bret 'Horfius' Dusseault
  */
 public class CommandManager {
-    //TODO add modules support
     private ArrayList<Command> commands = new ArrayList<>();
     private ArrayList<ChatFilter> filters = new ArrayList<>();
     private ArrayList<TextCommand> textCommands = new ArrayList<>();
@@ -39,6 +42,7 @@ public class CommandManager {
     public CommandManager(String server, String channel){
         this.channel = channel;
         this.server = server;
+        loadChannelData();
         //TODO load values + configs from database
     }
 
@@ -215,5 +219,37 @@ public class CommandManager {
 
     public boolean isModuleLoaded(String name){
         return modulesLoaded.contains(name);
+    }
+
+    public void saveChannelData(){
+        CommandsFile commandsFile = new CommandsFile(server, channel);
+        ChannelValuesFile channelValuesFile = new ChannelValuesFile(server, channel);
+
+        commandsFile.setContents(textCommands.stream().collect(Collectors.<TextCommand, String, TextCommand>toMap(
+                command -> command.getName(),
+                command -> command)));
+        channelValuesFile.setContents(this.channelValues);
+
+        commandsFile.saveFileContents();
+        channelValuesFile.saveFileContents();
+    }
+
+    private void loadChannelData(){
+        CommandsFile commandsFile = new CommandsFile(server, channel);
+        ChannelValuesFile channelValuesFile = new ChannelValuesFile(server, channel);
+
+        try {
+            commandsFile.readFileContents();
+            channelValuesFile.readFileContents();
+
+            Map<String, TextCommand> commands = commandsFile.getMappedContents();
+            Map<String, Object> values = channelValuesFile.getMappedContents();
+            this.textCommands = (ArrayList<TextCommand>)commands.keySet().stream().map(s -> commands.get(s)).collect(Collectors.toList());
+            this.channelValues = Maps.newHashMap(values);
+
+            getTextCommands().forEach(t -> System.out.println(t.getName() + "\t" + t.getMessage(null)));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -1,7 +1,9 @@
 package com.technostar98.tcbot.lib;
 
+import com.technostar98.tcbot.api.lib.Configuration;
 import com.technostar98.tcbot.api.lib.Timestamp;
 import com.technostar98.tcbot.lib.config.Configs;
+import com.technostar98.tcbot.lib.config.Stats;
 
 import java.io.*;
 import java.time.LocalDateTime;
@@ -24,10 +26,13 @@ public class CrashLogBuilder {
 
     public void buildLog(){
         LocalDateTime systemTime = LocalDateTime.now();
-        Timestamp programTime = new Timestamp(System.currentTimeMillis() - Configs.getLongConfiguration("startTime").getValue(), null);
+        Timestamp programTime = new Timestamp(System.currentTimeMillis() - ((Configuration<Long>)Stats.getStat("startTime")).getValue(), null);
 
-        File log = new File(Configs.getStringConfiguration("logDir").getValue() + "crash/" + (systemTime.toLocalDate() + "_" + systemTime.toLocalTime()) + ".log");
+        File log = new File(Configs.getStringConfiguration("logDir").getValue() + "crash" + File.separatorChar + (systemTime.toLocalDate() + "_" + systemTime.toLocalTime()) + ".log");
+        File logDir = new File(Configs.getStringConfiguration("logDir").getValue() + "crash" + File.separatorChar);
         try {
+            if(!logDir.exists())
+                logDir.mkdirs();
             log.createNewFile();
             PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(log)));
 
