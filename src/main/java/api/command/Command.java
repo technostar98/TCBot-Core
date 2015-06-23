@@ -1,6 +1,7 @@
-package com.technostar98.tcbot.api.command;
+package api.command;
 
-import com.technostar98.tcbot.api.lib.WrappedEvent;
+import api.lib.WrappedEvent;
+import com.technostar98.tcbot.bot.BotManager;
 import org.pircbotx.PircBotX;
 import org.pircbotx.UserLevel;
 import org.pircbotx.hooks.events.MessageEvent;
@@ -63,7 +64,8 @@ public abstract class Command {
 
     public boolean isUserAllowed(MessageEvent<PircBotX> event){
         return requiredULs != null && !requiredULs.isEmpty()
-                && event.getUser().getUserLevels(event.getChannel()).stream().anyMatch(ul -> requiredULs.contains(ul));
+                && event.getUser().getUserLevels(event.getChannel()).stream().anyMatch(ul -> requiredULs.contains(ul))
+                || BotManager.getBot(getServer()).getServerConfiguration().getSuperusers().contains(event.getUser().getNick());
     }
 
     public void close(){
@@ -71,7 +73,7 @@ public abstract class Command {
     }
 
     public abstract String getMessage(WrappedEvent<MessageEvent<PircBotX>> event);
-    public abstract boolean runCommand(WrappedEvent<MessageEvent<PircBotX>> event);
+    public abstract boolean runCommand(WrappedEvent<MessageEvent<PircBotX>> event, Object... args);
     public abstract String getHelpMessage();
 
     @Override

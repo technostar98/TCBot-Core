@@ -3,19 +3,17 @@ package com.technostar98.tcbot.io;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
-import api.command.TextCommand;
-import com.technostar98.tcbot.io.JSONadapters.CommandDeserializer;
-import com.technostar98.tcbot.io.JSONadapters.CommandSerializer;
+import com.google.gson.JsonObject;
 import com.technostar98.tcbot.lib.IJsonFileIO;
 import com.technostar98.tcbot.lib.config.Configs;
 
 import java.io.*;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * <p>Created by Bret 'Horfius' Dusseault in 2015.
@@ -26,15 +24,15 @@ import java.util.stream.Collectors;
  *
  * @author Bret 'Horfius' Dusseault
  */
-public class CommandsFile implements IJsonFileIO<TextCommand>{
+public class ChannelModulesFile implements IJsonFileIO<String> {
     private File file = null;
-    private Map<String, TextCommand> contents = Maps.newHashMap();
+    private List<String> modules = Lists.newArrayList();
 
-    public CommandsFile(String server, String channel){
+    public ChannelModulesFile(String server, String channel){
         File dir = new File(Configs.getStringConfiguration("configDir").getValue() + server + File.separatorChar + channel + File.separatorChar);
         if(!dir.exists())
             dir.mkdirs();
-        openFile(Configs.getStringConfiguration("configDir").getValue() + server + File.separatorChar + channel + File.separatorChar + "commands.json");
+        openFile(Configs.getStringConfiguration("configDir").getValue() + server + File.separatorChar + channel + File.separatorChar + "modules.json");
     }
 
     @Override
@@ -59,13 +57,16 @@ public class CommandsFile implements IJsonFileIO<TextCommand>{
     }
 
     @Override
-    public Map<String, TextCommand> getMappedContents() {
-        return contents;
+    public Map<String, String> getMappedContents() {
+        HashMap<String, String> map = Maps.newHashMap();
+        modules.forEach(m -> map.put(m, m));
+
+        return map;
     }
 
     @Override
     public List<String> getFields() {
-        return Lists.newArrayList(contents.keySet());
+        return modules;
     }
 
     @Override
@@ -74,13 +75,13 @@ public class CommandsFile implements IJsonFileIO<TextCommand>{
     }
 
     @Override
-    public void setContents(Map<String, TextCommand> contents) {
-        this.contents = contents;
+    public void setContents(Map<String, String> contents) {
+        this.modules = Lists.newArrayList(contents.keySet());
     }
 
     @Override
-    public void addField(String key, TextCommand value) {
-        contents.put(key, value);
+    public void addField(String key, String value) {
+        modules.add(value);
     }
 
     @Override
@@ -89,14 +90,17 @@ public class CommandsFile implements IJsonFileIO<TextCommand>{
         JsonArray array = new JsonArray();
 
         try{
-            FileOutputStream writer = new FileOutputStream(file);
+            FileOutputStream outputStream = new FileOutputStream(file);
 
-            for(String s : contents.keySet()){
-                array.add(gson.toJsonTree(contents.get(s)));
+            for(String s : modules){
+                JsonObject object = new JsonObject();
+                object.addProperty("module", s);
+
+                array.add(object);
             }
 
-            writer.write(gson.toJson(array).getBytes());
-            writer.close();
+            outputStream.write(gson.toJson(array).getBytes());
+            outputStream.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -111,35 +115,26 @@ public class CommandsFile implements IJsonFileIO<TextCommand>{
             InputStreamReader isr = new InputStreamReader(inputStream);
             BufferedReader reader = new BufferedReader(isr);
 
-            TextCommand[] commands = gson.fromJson(reader, TextCommand[].class);
-            if(commands != null) {
-                setContents(Lists.newArrayList(commands).stream().collect(Collectors.<TextCommand, String, TextCommand>toMap(
-                        t -> t.getName(),
-                        t -> t
-                )));
+            List<String> tempModules = Lists.newArrayList();
+            JsonObject[] modules = gson.fromJson(reader, JsonObject[].class);
+            if(modules != null && modules.length > 0){
+                for(JsonObject o : modules){
+                    tempModules.add(gson.fromJson(o.get("module"), String.class));
+                }
+
+                this.modules = tempModules;
             }
 
-            inputStream.close();
-            isr.close();
             reader.close();
-        }catch (IOException e){
+            isr.close();
+            inputStream.close();
+        }catch(IOException e){
             e.printStackTrace();
         }
     }
 
     @Override
     public boolean isInitialized() {
-        return file != null && file.exists();
-    }
-
-    @Override
-    public Gson buildGson() {
-        return new GsonBuilder()
-                .registerTypeAdapter(TextCommand.class, new CommandSerializer())
-                .registerTypeAdapter(TextCommand.class, new CommandDeserializer())
-                .disableHtmlEscaping()
-                .serializeNulls()
-                .setPrettyPrinting()
-                .create();
+        return true;
     }
 }

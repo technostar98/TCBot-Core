@@ -1,7 +1,7 @@
 package com.technostar98.tcbot.lib.config;
 
 import com.technostar98.tcbot.Launcher;
-import com.technostar98.tcbot.api.lib.Configuration;
+import api.lib.Configuration;
 import com.technostar98.tcbot.lib.Logger;
 
 import java.io.File;

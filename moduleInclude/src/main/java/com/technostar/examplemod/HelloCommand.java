@@ -1,8 +1,8 @@
 package com.technostar.examplemod;
 
-import com.technostar98.tcbot.api.command.Command;
-import com.technostar98.tcbot.api.command.CommandType;
-import com.technostar98.tcbot.api.lib.WrappedEvent;
+import api.command.Command;
+import api.command.CommandType;
+import api.lib.WrappedEvent;
 import org.pircbotx.PircBotX;
 import org.pircbotx.hooks.events.MessageEvent;
 

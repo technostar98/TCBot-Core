@@ -1,9 +1,9 @@
 package com.technostar98.tcbot.command.Commands;
 
 import com.technostar98.tcbot.bot.BotManager;
-import com.technostar98.tcbot.api.command.Command;
-import com.technostar98.tcbot.api.command.CommandType;
-import com.technostar98.tcbot.api.lib.WrappedEvent;
+import api.command.Command;
+import api.command.CommandType;
+import api.lib.WrappedEvent;
 import org.pircbotx.PircBotX;
 import org.pircbotx.hooks.events.MessageEvent;
 
@@ -33,7 +33,7 @@ public class ShutdownCommand extends Command {
     }
 
     @Override
-    public boolean runCommand(WrappedEvent<MessageEvent<PircBotX>> event) {
+    public boolean runCommand(WrappedEvent<MessageEvent<PircBotX>> event, Object... args) {
         if(isUserAllowed(event.getEvent())){
             Timer timer = new Timer("Shutdown");
             timer.schedule(new TimerTask(){
@@ -49,7 +49,7 @@ public class ShutdownCommand extends Command {
 
     @Override
     public boolean isUserAllowed(MessageEvent<PircBotX> event) {
-        return event.getUser().getRealName().equals("Horf");
+        return BotManager.getBot(getServer()).getServerConfiguration().getSuperusers().contains(event.getUser().getNick());
     }
 
     @Override

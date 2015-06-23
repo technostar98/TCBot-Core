@@ -1,7 +1,7 @@
 package com.technostar98.tcbot.io.JSONadapters;
 
 import com.google.gson.*;
-import com.technostar98.tcbot.api.command.TextCommand;
+import api.command.TextCommand;
 import org.pircbotx.UserLevel;
 
 import java.lang.reflect.Type;

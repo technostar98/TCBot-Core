@@ -15,50 +15,52 @@ import java.util.stream.Collectors;
  * @author Bret 'Horfius' Dusseault
  */
 public class ModuleManager {
-    private static List<String> loadedModuleNames = new ArrayList<>();
-    private static HashMap<String, String> fileToLocalizedNames = new HashMap<>();
-    private static HashMap<String, Module> loadedModules = new HashMap<>();
+    private List<String> loadedModuleNames = new ArrayList<>();
+    private HashMap<String, String> fileToLocalizedNames = new HashMap<>();
+    private HashMap<String, Module> loadedModules = new HashMap<>();
 
-    public static List<String> getModuleNames(){
+    public List<String> getModuleNames(){
         return loadedModuleNames;
     }
 
-    public static boolean isModuleLoaded(String name){
+    public boolean isModuleLoaded(String name){
         return loadedModuleNames.contains(name) || fileToLocalizedNames.containsKey(name);
     }
 
-    public static Module getModule(String name){
+    public Module getModule(String name){
         return isModuleLoaded(name) ? loadedModules.get(name) == null ?
                 loadedModules.get(fileToLocalizedNames.get(name)) : loadedModules.get(name) : null;
     }
 
-    public static List<Module> getModules(){
+    public List<Module> getModules(){
         return loadedModules.isEmpty() ? null : loadedModuleNames.parallelStream().map(s -> loadedModules.get(s)).collect(Collectors.toList());
     }
 
-    public static boolean loadModule(String name){
+    public boolean loadModule(String name){
         if(isModuleLoaded(name))
             return true;
         else{
             ModuleLoader loader = new ModuleLoader(name);
             Module module = loader.loadModule();
-            System.out.println("Module " + module.getName() + " is " + (module == null ? "null" : "not null"));
-            if(module != null) System.out.println("Command count: " + module.getCommands().size() +
-                "\nFilter size: " + module.getFilters().size());
-            System.out.println("Putting key: " + name + "\tvalue: " + module.getName());
-            fileToLocalizedNames.put(name, module.getName());
-            loadedModuleNames.add(module.getName());
-            loadedModules.put(module.getName(), module);
-            System.out.println("Loaded check: " + isModuleLoaded(name));
+//            System.out.println("Module " + module.getName() + " is " + (module == null ? "null" : "not null"));
+//            if(module != null) System.out.println("Command count: " + module.getCommands().size() +
+//                "\nFilter size: " + module.getFilters().size());
+//            System.out.println("Putting key: " + name + "\tvalue: " + module.getName());
+//            System.out.println("Loaded check: " + isModuleLoaded(name));
 
             if(module == null)
                 return false;
-            else
+            else {
+                fileToLocalizedNames.put(name, module.getName());
+                loadedModuleNames.add(module.getName());
+                loadedModules.put(module.getName(), module);
+
                 return true;
+            }
         }
     }
 
-    public static void unloadModule(String name){
+    public void unloadModule(String name){
         if(isModuleLoaded(name)){
             loadedModules.remove(name);
             loadedModuleNames.remove(name);

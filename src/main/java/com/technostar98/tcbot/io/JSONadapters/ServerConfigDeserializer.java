@@ -27,8 +27,10 @@ public class ServerConfigDeserializer implements JsonDeserializer<ServerConfigur
             String nick = object.get("nick").getAsString();
             String password = object.get("password").getAsString();
             List<String> channels = new ArrayList<>();
+            List<String> superusers = new ArrayList<>();
             object.get("channels").getAsJsonArray().iterator().forEachRemaining(s -> channels.add(s.getAsString()));
-            return new ServerConfiguration(serverName, serverAddress, nick, password, channels);
+            object.get("superusers").getAsJsonArray().iterator().forEachRemaining(u -> superusers.add(u.getAsString()));
+            return new ServerConfiguration(serverName, serverAddress, nick, password, superusers, channels);
         }
 
         return null;

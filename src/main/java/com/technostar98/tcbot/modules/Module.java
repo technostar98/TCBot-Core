@@ -1,9 +1,9 @@
 package com.technostar98.tcbot.modules;
 
-import com.technostar98.tcbot.api.command.Command;
-import com.technostar98.tcbot.api.filter.ChatFilter;
+import api.command.CommandManager;
+import api.command.ICommandManager;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -16,17 +16,19 @@ import java.util.List;
  * @author Bret 'Horfius' Dusseault
  */
 public class Module {
-    private final HashMap<String, Command> commands = new HashMap<>();
-    private final HashMap<String, ChatFilter> filters = new HashMap<>();
+    private final List<String> commands = new ArrayList<>();
+    private final List<String> filters = new ArrayList<>();
     private final String name, ID;
     private final int version;
 
-    public Module(String name, String id, int version, List<Command> commandList, List<ChatFilter> filterList){
+    public Module(String name, String id, int version){
         this.name = name;
         this.ID = id;
         this.version = version;
-        commandList.parallelStream().sorted((a, b) -> a.getName().compareTo(b.getName())).forEach(a -> commands.put(a.getName(), a));
-        filterList.parallelStream().sorted((a, b) -> a.getName().compareTo(b.getName())).forEach(a -> filters.put(a.getName(), a));
+
+        final ICommandManager manager = CommandManager.commandManager.get();
+        manager.getModuleCommands(name).forEach(c -> commands.add(c.getName()));
+        manager.getModuleFilters(name).forEach(c -> commands.add(c.getName()));
     }
 
     public String getName() {
@@ -41,19 +43,11 @@ public class Module {
         return version;
     }
 
-    public HashMap<String, Command> getCommands() {
-        return commands;
+    public List<String> getCommands(){
+        return this.commands;
     }
 
-    public HashMap<String, ChatFilter> getFilters() {
-        return filters;
-    }
-
-    public Command getCommand(String name){
-        return commands.get(name);
-    }
-
-    public ChatFilter getFilter(String name){
-        return filters.get(name);
+    public List<String> getFilters(){
+        return this.filters;
     }
 }

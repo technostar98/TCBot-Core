@@ -1,4 +1,4 @@
-package com.technostar98.tcbot.api.lib;
+package api.lib;
 
 //import Stats;
 import org.pircbotx.hooks.Event;

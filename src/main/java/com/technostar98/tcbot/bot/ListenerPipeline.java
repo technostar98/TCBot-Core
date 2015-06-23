@@ -1,14 +1,15 @@
 package com.technostar98.tcbot.bot;
 
-import com.technostar98.tcbot.api.command.Command;
-import com.technostar98.tcbot.api.command.TextCommand;
-import com.technostar98.tcbot.api.filter.ChatFilter;
-import com.technostar98.tcbot.api.filter.FilterResponse;
+import com.google.common.base.Optional;
+import api.command.Command;
+import api.command.ICommandManager;
+import api.command.TextCommand;
+import api.filter.ChatFilter;
+import api.filter.FilterResponse;
 import com.technostar98.tcbot.command.CommandManager;
-import com.technostar98.tcbot.api.lib.WrappedEvent;
+import api.lib.WrappedEvent;
 import com.technostar98.tcbot.command.TextCommandParser;
 import com.technostar98.tcbot.lib.Logger;
-import com.technostar98.tcbot.modules.CommandPool;
 import org.pircbotx.PircBotX;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.*;
@@ -81,8 +82,11 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
 
     @Override
     public void onAction(ActionEvent<PircBotX> event) throws Exception {
-        if(!event.getUser().getNick().equals(event.getBot().getNick()) && inputEnabled)
-            getCommandManager(event.getChannel().getName()).getFilters().forEach(f -> f.onUserAction(new WrappedEvent<>(event)));
+        if(!event.getUser().getNick().equals(event.getBot().getNick()) && inputEnabled) {
+            CommandManager cm = getCommandManager(event.getChannel().getName());
+            if (cm.getFilters() != null)
+                cm.getFilters().forEach(f -> f.onUserAction(new WrappedEvent<>(event)));
+        }
         super.onAction(event);
     }
 
@@ -143,14 +147,22 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
         if(event.getUser().getNick().contains(event.getBot().getNick())) {
             Logger.info("Joined channel " + event.getChannel().getName());
             CommandManager cm = new CommandManager(server, event.getChannel().getName());
+            ICommandManager manager = api.command.CommandManager.commandManager.get();
 
             //TODO module command/filter loading
-            CommandPool.getBotCommandsList().forEach(c -> cm.addCommand(c));
-            if(cm.getCommands() != null)
-                cm.getCommands().stream().forEach(c -> c.setServer(server));
-            CommandPool.getBotFilterList().forEach(f -> cm.addFilter(f));
-            if(cm.getFilters() != null)
-                cm.getFilters().stream().forEach(f -> f.setServer(server));
+            Optional<List<Command>> commands = Optional.fromNullable(manager.getCommands());
+            if(commands.isPresent()) {
+                commands.get().forEach(c -> cm.addCommand(c));
+                if (cm.getCommands() != null)
+                    cm.getCommands().stream().forEach(c -> c.setServer(server));
+            }
+
+            Optional<List<ChatFilter>> filters = Optional.fromNullable(manager.getFilters());
+            if(filters.isPresent()) {
+                filters.get().forEach(f -> cm.addFilter(f));
+                if (cm.getFilters() != null)
+                    cm.getFilters().stream().forEach(f -> f.setServer(server));
+            }
 
             commandManagers.put(event.getChannel().getName(), cm);
         }else if(inputEnabled){

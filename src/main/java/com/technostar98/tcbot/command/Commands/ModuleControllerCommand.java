@@ -1,14 +1,14 @@
 package com.technostar98.tcbot.command.Commands;
 
-import com.technostar98.tcbot.api.command.Command;
-import com.technostar98.tcbot.api.command.CommandType;
-import com.technostar98.tcbot.api.lib.WrappedEvent;
+import api.command.Command;
+import api.command.CommandType;
+import api.command.ICommandManager;
+import api.lib.WrappedEvent;
 import com.technostar98.tcbot.bot.BotManager;
 import com.technostar98.tcbot.bot.ListenerPipeline;
 import com.technostar98.tcbot.command.CommandManager;
 import com.technostar98.tcbot.lib.config.Configs;
 import com.technostar98.tcbot.modules.Module;
-import com.technostar98.tcbot.modules.ModuleManager;
 import org.pircbotx.PircBotX;
 import org.pircbotx.UserLevel;
 import org.pircbotx.hooks.events.MessageEvent;
@@ -57,12 +57,13 @@ public class ModuleControllerCommand extends Command {
                 String name = words[2];
                 ListenerPipeline lP = BotManager.getBotOutputPipe(this.getServer());
                 CommandManager cm = lP.getCommandManager(event.getEvent().getChannel().getName());
+                final ICommandManager manager = api.command.CommandManager.commandManager.get();
 
-                if(ModuleManager.loadModule(name)){
+                if(manager.loadModule(name, getServer(), event.getEvent().getChannel().getName())){
                     if(cm.isModuleLoaded(name))
                         return "Module " + name + " is already loaded for this channel.";
                     else {
-                        Module m = ModuleManager.getModule(name);
+                        Module m = manager.getModule(name);
                         cm.addModule(name);
                         return "Module " + name + " has been successfully loaded into this channel with " +
                                 m.getCommands().size() + " commands and " + m.getFilters().size()
@@ -89,7 +90,7 @@ public class ModuleControllerCommand extends Command {
     }
 
     @Override
-    public boolean runCommand(WrappedEvent<MessageEvent<PircBotX>> event) {
+    public boolean runCommand(WrappedEvent<MessageEvent<PircBotX>> event, Object... args) {
         return false;
     }
 

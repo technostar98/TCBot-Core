@@ -2,9 +2,9 @@ package com.technostar98.tcbot.command.Commands;
 
 import com.technostar98.tcbot.bot.BotManager;
 import com.technostar98.tcbot.bot.BotState;
-import com.technostar98.tcbot.api.command.Command;
-import com.technostar98.tcbot.api.command.CommandType;
-import com.technostar98.tcbot.api.lib.WrappedEvent;
+import api.command.Command;
+import api.command.CommandType;
+import api.lib.WrappedEvent;
 import org.pircbotx.PircBotX;
 import org.pircbotx.UserLevel;
 import org.pircbotx.hooks.events.MessageEvent;
@@ -31,7 +31,7 @@ public class BotQuitCommand extends Command {
     }
 
     @Override
-    public boolean runCommand(WrappedEvent<MessageEvent<PircBotX>> event) {
+    public boolean runCommand(WrappedEvent<MessageEvent<PircBotX>> event, Object... args) {
         boolean allowed = isUserAllowed(event.getEvent());
         if(allowed){
             event.getEvent().getBot().sendIRC().quitServer("Cya later, alligators!");

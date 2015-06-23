@@ -1,6 +1,6 @@
-package com.technostar98.tcbot.api.filter;
+package api.filter;
 
-import com.technostar98.tcbot.api.lib.WrappedEvent;
+import api.lib.WrappedEvent;
 import org.pircbotx.PircBotX;
 import org.pircbotx.hooks.events.*;
 

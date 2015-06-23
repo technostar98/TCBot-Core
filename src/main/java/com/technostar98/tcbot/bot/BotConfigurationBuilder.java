@@ -56,10 +56,8 @@ public class BotConfigurationBuilder {
                 .setNickservPassword(config.getPassword())
                 .setServer(config.getServerAddress(), 6667)
                 .setVersion(Configs.getStringConfiguration("version").getValue());
-        config.getAutoJoinChannels().forEach(c -> {
-            configurationBuilder.addAutoJoinChannel(c);
-            System.out.println(c);
-        });
+
+        config.getAutoJoinChannels().forEach(c -> configurationBuilder.addAutoJoinChannel(c));
 
         return configurationBuilder.buildConfiguration();
     }

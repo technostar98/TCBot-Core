@@ -1,4 +1,4 @@
-package com.technostar98.tcbot.api;
+package api;
 
 import java.lang.annotation.*;
 

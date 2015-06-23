@@ -1,9 +1,9 @@
 package com.technostar98.tcbot.command.Commands;
 
-import com.technostar98.tcbot.api.command.Command;
-import com.technostar98.tcbot.api.command.CommandType;
-import com.technostar98.tcbot.api.command.TextCommand;
-import com.technostar98.tcbot.api.lib.WrappedEvent;
+import api.command.Command;
+import api.command.CommandType;
+import api.command.TextCommand;
+import api.lib.WrappedEvent;
 import com.technostar98.tcbot.bot.BotManager;
 import com.technostar98.tcbot.command.CommandManager;
 import org.pircbotx.PircBotX;
@@ -210,7 +210,7 @@ public class TextCommandControllerCommand extends Command {
     }
 
     @Override
-    public boolean runCommand(WrappedEvent<MessageEvent<PircBotX>> event) {
+    public boolean runCommand(WrappedEvent<MessageEvent<PircBotX>> event, Object... args) {
         return false;
     }
 

@@ -1,5 +1,7 @@
 package com.technostar98.tcbot.bot;
 
+import com.google.common.collect.Maps;
+import com.technostar98.tcbot.io.ServerConfigFile;
 import com.technostar98.tcbot.lib.Logger;
 import com.technostar98.tcbot.lib.config.ServerConfiguration;
 import org.pircbotx.PircBotX;
@@ -27,12 +29,8 @@ public class BotManager {
     private static boolean debuggerClosed = false;
     private static Thread dataManager = null;
 
-    public static void createNewBot(String server, String... channels){
-        bots.put(server, new IRCBot(BotConfigurationBuilder.buildConfig(server, channels), BotState.RUNNING));
-    }
-
     public static void createNewBot(ServerConfiguration config){
-        bots.put(config.getServerAddress(), new IRCBot(BotConfigurationBuilder.buildConfig(config), BotState.RUNNING));
+        bots.put(config.getServerAddress(), new IRCBot(BotConfigurationBuilder.buildConfig(config), BotState.RUNNING, config));
     }
 
     public static IRCBot getBot(String server){
@@ -86,6 +84,7 @@ public class BotManager {
             }
 
             //TODO close anything else necessary
+            dataManager.interrupt();
             forceDebuggerShutdown();
             try {
                 Thread.sleep(1000);
@@ -113,7 +112,8 @@ public class BotManager {
                     bots.remove(server);
                 }
 
-            scheduleDebuggerShutdown();
+                scheduleDebuggerShutdown();
+                dataManager.interrupt();
             }catch(Exception e){
                 e.printStackTrace();
             }
@@ -175,5 +175,22 @@ public class BotManager {
         }
 
         return null;
+    }
+
+    public static void saveServerConfigurations(){
+        synchronized (lock){
+            if(bots.size() > 0){
+                Logger.info("Saving server configurations!");
+
+                Map<String, ServerConfiguration> configs = Maps.newHashMapWithExpectedSize(bots.size());
+                bots.keySet().forEach(b -> configs.put(getBot(b).getServerConfiguration().getServerName(), getBot(b).getServerConfiguration()));
+
+                ServerConfigFile file = new ServerConfigFile();
+                file.setContents(configs);
+                file.saveFileContents();
+            }else{
+                Logger.error("Could not find bots to save server configurations for!");
+            }
+        }
     }
 }

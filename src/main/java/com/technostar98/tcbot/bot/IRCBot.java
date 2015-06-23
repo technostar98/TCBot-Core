@@ -1,5 +1,6 @@
 package com.technostar98.tcbot.bot;
 
+import com.technostar98.tcbot.lib.config.ServerConfiguration;
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
 
@@ -20,18 +21,20 @@ public class IRCBot {
     private PircBotX bot;
     private BotState state;
     private String preferredNick;
-    private HashMap<String, com.technostar98.tcbot.api.lib.Configuration<?>> configs = new HashMap<>();
+    private ServerConfiguration serverConfiguration;
+    private HashMap<String, api.lib.Configuration<?>> configs = new HashMap<>();
 
-    protected IRCBot(Configuration config, BotState state){
+    protected IRCBot(Configuration config, BotState state, ServerConfiguration configuration){
         this.bot = new PircBotX(config);
         this.state = state;
         this.preferredNick = config.getName();
+        this.serverConfiguration = configuration;
 
         if(!config.getServerHostname().equals("irc.twitch.tv")) {
-            configs.put("nickChangeAllowed", new com.technostar98.tcbot.api.lib.Configuration<>(
+            configs.put("nickChangeAllowed", new api.lib.Configuration<>(
                     "nickChangeAllowed", true, Boolean.class));
         }else{
-            configs.put("nickChangeAllowed", new com.technostar98.tcbot.api.lib.Configuration<>(
+            configs.put("nickChangeAllowed", new api.lib.Configuration<>(
                     "nickChangeAllowed", false, Boolean.class));
         }
     }
@@ -60,7 +63,11 @@ public class IRCBot {
         this.preferredNick = preferredNick;
     }
 
-    public com.technostar98.tcbot.api.lib.Configuration<?> getConfiguration(String key){
+    public api.lib.Configuration<?> getConfiguration(String key){
         return configs.getOrDefault(key, null);
+    }
+
+    public ServerConfiguration getServerConfiguration() {
+        return serverConfiguration;
     }
 }

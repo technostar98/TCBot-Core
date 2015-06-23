@@ -18,17 +18,19 @@ public class ServerConfiguration {
     private String nick;
     private String password;
     private List<String> autoJoinChannels;
+    private List<String> superusers;
 
-    public ServerConfiguration(String serverName, String address, String nick, String password, String... channels){
-        this(serverName, address, nick, password, Arrays.asList(channels));
+    public ServerConfiguration(String serverName, String address, String nick, String password, List<String> superusers, String... channels){
+        this(serverName, address, nick, password, superusers, Arrays.asList(channels));
     }
 
-    public ServerConfiguration(String serverName, String address, String nick, String password, List<String> channels){
+    public ServerConfiguration(String serverName, String address, String nick, String password, List<String> superusers, List<String> channels){
         this.serverName = serverName;
         this.serverAddress = address;
         this.nick = nick;
         this.password = password;
         this.autoJoinChannels = channels;
+        this.superusers = superusers;
     }
 
     public void setAutoJoinChannels(List<String> autoJoinChannels) {
@@ -77,5 +79,29 @@ public class ServerConfiguration {
 
     public String getServerName() {
         return serverName;
+    }
+
+    public void removeChannel(String channel){
+        if(autoJoinChannels.contains(channel)){
+            autoJoinChannels.remove(channel);
+        }
+    }
+
+    public List<String> getSuperusers() {
+        return superusers;
+    }
+
+    public void setSuperusers(List<String> superusers) {
+        this.superusers = superusers;
+    }
+
+    public void addSuperuser(String nick){
+        if(!superusers.contains(nick))
+            superusers.add(nick);
+    }
+
+    public void removeSuperuser(String nick){
+        if(superusers.contains(nick))
+            superusers.remove(nick);
     }
 }

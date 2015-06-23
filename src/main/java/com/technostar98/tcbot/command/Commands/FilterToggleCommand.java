@@ -1,18 +1,14 @@
 package com.technostar98.tcbot.command.Commands;
 
-import com.technostar98.tcbot.api.command.Command;
-import com.technostar98.tcbot.api.command.CommandType;
-import com.technostar98.tcbot.api.lib.WrappedEvent;
+import api.command.Command;
+import api.command.CommandType;
+import api.command.ICommandManager;
+import api.lib.WrappedEvent;
 import com.technostar98.tcbot.bot.BotManager;
-import com.technostar98.tcbot.bot.IRCBot;
-import com.technostar98.tcbot.bot.ListenerPipeline;
 import com.technostar98.tcbot.command.CommandManager;
-import com.technostar98.tcbot.modules.CommandPool;
 import org.pircbotx.PircBotX;
 import org.pircbotx.UserLevel;
 import org.pircbotx.hooks.events.MessageEvent;
-
-import java.util.stream.Collectors;
 
 /**
  * <p>Created by Bret 'Horfius' Dusseault in 2015.
@@ -32,19 +28,14 @@ public class FilterToggleCommand extends Command{
     @Override
     public String getMessage(WrappedEvent<MessageEvent<PircBotX>> event) {
         String[] words = event.getEvent().getMessage().split(" ");
+        ICommandManager manager = api.command.CommandManager.commandManager.get();
+
         if(words.length == 1)
             return "Please specify the action ('enable' or 'disable') and target filter";
         else if(words.length == 2)
             return "Please specify the target filter";
-        else if(words[2].startsWith("--module=") && words.length >= 4 &&
-                CommandPool.doesFilterExist(words[3], words[2].substring(words[2].indexOf("=") + 1))){
-            boolean success = runCommand(event);
-            if(success)
-                return "Filter " + words[3] + " has been successfully " + (words[1] + "d");
-            else
-                return "Filter " + words[3] + " could not be toggled.";
-        }else if(CommandPool.doesFilterExist(words[2], null)){
-            boolean success = runCommand(event);
+        else if(manager.doesFilterExist(words[2]) || manager.doesModuleFilterExist("*", words[2])){
+            boolean success = runCommand(event, words[1], words[2], manager);
             if(success)
                 return "Filter " + words[2] + " has been successfully " + (words[1] + "d");
             else
@@ -55,55 +46,23 @@ public class FilterToggleCommand extends Command{
     }
 
     @Override
-    public boolean runCommand(WrappedEvent<MessageEvent<PircBotX>> event) {
-        String[] words = event.getEvent().getMessage().split(" ");
-        String action = words[1];
+    public boolean runCommand(WrappedEvent<MessageEvent<PircBotX>> event, Object... args) {
+        String action = (String)args[0];
+        String target = (String)args[1];
+        ICommandManager manager = (ICommandManager)args[2];
+        CommandManager commandManager = BotManager.getBotOutputPipe(getServer()).getCommandManager(event.getEvent().getChannel().getName());
 
-        if(words.length >= 4 && words[2].startsWith("--module=")){
-            String module = words[2].substring(words[2].indexOf("=") + 1);
-            String name = words[3];
-
-            if(CommandPool.getModule(module) != null) {
-                CommandManager cm = BotManager.getBotOutputPipe(this.getServer()).getCommandManager(event.getEvent().getChannel().getName());
-
-                if (action.equals("enable")) {
-                    if (cm.getFilter(name) != null) {
-                        return false;
-                    }else {
-                        cm.addFilter(CommandPool.getModule(module).getFilter(name));
-                        return true;
-                    }
-                } else if (action.equals("disable")) {
-                    if (cm.getFilter(name) != null) {
-                        cm.removeFilter(name);
-                        return true;
-                    }else{
-                        return false;
-                    }
-                }
-            }else
-                return false;
-        }else{
-            String name = words[2];
-
-            ListenerPipeline l = BotManager.getBotOutputPipe(getServer());
-            CommandManager cm = l.getCommandManager(event.getEvent().getChannel().getName());
-
-            if (action.equals("enable")) {
-                if (cm.getFilter(name) != null) {
-                    return false;
-                }else {
-                    cm.addFilter(CommandPool.getBotFilterList().stream().filter(f -> f.getName().equals(name))
-                            .collect(Collectors.toList()).get(0));
+        if(action.equals("enable")){
+            if(!commandManager.hasFilter(name) && commandManager.isFilterAvailable(target)){
+                if(manager.getFilter(target) != null) {
+                    commandManager.addFilter(manager.getFilter(target));
                     return true;
                 }
-            } else if (action.equals("disable")) {
-                if (cm.getFilter(name) != null) {
-                    cm.removeFilter(name);
-                    return true;
-                }else{
-                    return false;
-                }
+            }
+        }else if(action.equals("disable")){
+            if(commandManager.hasFilter(target)){
+                commandManager.removeFilter(target);
+                return true;
             }
         }
 

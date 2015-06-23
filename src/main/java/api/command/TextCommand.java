@@ -1,6 +1,6 @@
-package com.technostar98.tcbot.api.command;
+package api.command;
 
-import com.technostar98.tcbot.api.lib.WrappedEvent;
+import api.lib.WrappedEvent;
 import org.pircbotx.PircBotX;
 import org.pircbotx.UserLevel;
 import org.pircbotx.hooks.events.MessageEvent;
@@ -44,7 +44,7 @@ public class TextCommand extends Command {
     }
 
     @Override
-    public final boolean runCommand(WrappedEvent<MessageEvent<PircBotX>> event) {
+    public final boolean runCommand(WrappedEvent<MessageEvent<PircBotX>> event, Object... args) {
         return false;
     }
 

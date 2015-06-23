@@ -1,15 +1,16 @@
 package com.technostar98.tcbot.command;
 
 import com.google.common.collect.Maps;
-import com.technostar98.tcbot.api.command.Command;
-import com.technostar98.tcbot.api.command.CommandType;
-import com.technostar98.tcbot.api.command.TextCommand;
-import com.technostar98.tcbot.api.filter.ChatFilter;
-import com.technostar98.tcbot.api.lib.WrappedEvent;
+import api.command.Command;
+import api.command.CommandType;
+import api.command.ICommandManager;
+import api.command.TextCommand;
+import api.filter.ChatFilter;
+import api.lib.WrappedEvent;
+import com.technostar98.tcbot.io.ChannelModulesFile;
 import com.technostar98.tcbot.io.ChannelValuesFile;
 import com.technostar98.tcbot.io.CommandsFile;
 import com.technostar98.tcbot.modules.Module;
-import com.technostar98.tcbot.modules.ModuleManager;
 import org.pircbotx.PircBotX;
 import org.pircbotx.hooks.events.MessageEvent;
 
@@ -131,19 +132,18 @@ public class CommandManager {
     }
 
     public void addModule(String name){
-        Module m = ModuleManager.getModule(name);
+        ICommandManager manager = api.command.CommandManager.commandManager.get();
+        Module m = manager.getModule(name);
 
         if(m != null){
             modulesLoaded.add(name);
-            HashMap<String, Command> commandsM = m.getCommands();
-            HashMap<String, ChatFilter> filtersM = m.getFilters();
 
-            for(String s : commandsM.keySet()){
-                addCommand(commandsM.get(s));
+            for(String s : m.getCommands()){
+                addCommand(manager.getModuleCommand(m.getName(), s));
                 getCommand(s).setServer(server);
             }
-            for(String s : filtersM.keySet()){
-                addFilter(filtersM.get(s));
+            for(String s : m.getFilters()){
+                addFilter(manager.getModuleFilter(m.getName(), s));
                 getFilter(s).setServer(server);
             }
         }
@@ -179,14 +179,15 @@ public class CommandManager {
     }
 
     public void removeModule(String name){
-        Module m = ModuleManager.getModule(name);
+        ICommandManager manager = api.command.CommandManager.commandManager.get();
+        Module m = manager.getModule(name);
 
-        for(String key : m.getCommands().keySet()){
-            commands.remove(m.getCommand(key));
+        for(String key : m.getCommands()){
+            commands.remove(manager.getModuleCommand(m.getName(), key));
         }
 
-        for(String key : m.getFilters().keySet()){
-            filters.remove(m.getFilter(key));
+        for(String key : m.getFilters()){
+            filters.remove(manager.getModuleFilter(m.getName(), key));
         }
 
         modulesLoaded.remove(name);
@@ -221,33 +222,51 @@ public class CommandManager {
         return modulesLoaded.contains(name);
     }
 
+    public boolean isFilterAvailable(String name){
+        ICommandManager manager = api.command.CommandManager.commandManager.get();
+        return manager.getFilter(name) != null || modulesLoaded.stream().anyMatch(s -> manager.getModuleFilter(s, name) != null);
+    }
+
     public void saveChannelData(){
         CommandsFile commandsFile = new CommandsFile(server, channel);
         ChannelValuesFile channelValuesFile = new ChannelValuesFile(server, channel);
+        ChannelModulesFile modulesFile = new ChannelModulesFile(server, channel);
 
         commandsFile.setContents(textCommands.stream().collect(Collectors.<TextCommand, String, TextCommand>toMap(
                 command -> command.getName(),
                 command -> command)));
         channelValuesFile.setContents(this.channelValues);
+        modulesFile.setContents(modulesLoaded.stream().collect(Collectors.<String, String, String>toMap(
+                module -> module,
+                module -> module
+        )));
 
         commandsFile.saveFileContents();
         channelValuesFile.saveFileContents();
+        modulesFile.saveFileContents();
     }
 
     private void loadChannelData(){
         CommandsFile commandsFile = new CommandsFile(server, channel);
         ChannelValuesFile channelValuesFile = new ChannelValuesFile(server, channel);
+        ChannelModulesFile modulesFile = new ChannelModulesFile(server, channel);
 
         try {
             commandsFile.readFileContents();
             channelValuesFile.readFileContents();
+            modulesFile.readFileContents();
 
             Map<String, TextCommand> commands = commandsFile.getMappedContents();
             Map<String, Object> values = channelValuesFile.getMappedContents();
-            this.textCommands = (ArrayList<TextCommand>)commands.keySet().stream().map(s -> commands.get(s)).collect(Collectors.toList());
+            List<String> modules = modulesFile.getFields();
+            this.textCommands = (ArrayList)commands.keySet().stream().map(s -> commands.get(s)).collect(Collectors.toList());
             this.channelValues = Maps.newHashMap(values);
 
-            getTextCommands().forEach(t -> System.out.println(t.getName() + "\t" + t.getMessage(null)));
+            modules.forEach(m -> {
+                if(!isModuleLoaded(m)){
+                    addModule(m);
+                }
+            });
         } catch (IOException e) {
             e.printStackTrace();
         }

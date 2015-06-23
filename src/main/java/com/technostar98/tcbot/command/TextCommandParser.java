@@ -1,7 +1,7 @@
 package com.technostar98.tcbot.command;
 
-import com.technostar98.tcbot.api.lib.ValuePair;
-import com.technostar98.tcbot.api.lib.WrappedEvent;
+import api.lib.ValuePair;
+import api.lib.WrappedEvent;
 import org.pircbotx.PircBotX;
 import org.pircbotx.hooks.events.MessageEvent;
 

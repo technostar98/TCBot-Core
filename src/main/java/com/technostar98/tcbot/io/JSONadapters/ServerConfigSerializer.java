@@ -27,6 +27,7 @@ public class ServerConfigSerializer implements JsonSerializer<ServerConfiguratio
         object.add("nick", context.serialize(src.getNick()));
         object.add("password", context.serialize(src.getPassword()));
         object.add("channels", context.serialize(src.getAutoJoinChannels()));
+        object.add("superusers", context.serialize(src.getSuperusers()));
         return object;
     }
 }

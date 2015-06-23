@@ -1,8 +1,8 @@
 package com.technostar.examplemod;
 
-import com.technostar98.tcbot.api.filter.ChatFilter;
-import com.technostar98.tcbot.api.filter.FilterResponse;
-import com.technostar98.tcbot.api.lib.WrappedEvent;
+import api.filter.ChatFilter;
+import api.filter.FilterResponse;
+import api.lib.WrappedEvent;
 import org.pircbotx.PircBotX;
 import org.pircbotx.hooks.events.*;
 

@@ -1,11 +1,11 @@
 package com.technostar.examplemod;
 
-import com.technostar98.tcbot.api.AssetLoader;
-import com.technostar98.tcbot.api.Commands;
-import com.technostar98.tcbot.api.Filters;
-import com.technostar98.tcbot.api.Module;
-import com.technostar98.tcbot.api.command.Command;
-import com.technostar98.tcbot.api.filter.ChatFilter;
+import api.AssetLoader;
+import api.Commands;
+import api.Filters;
+import api.Module;
+import api.command.Command;
+import api.filter.ChatFilter;
 
 import java.util.ArrayList;
 import java.util.List;

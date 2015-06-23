@@ -1,10 +1,9 @@
-package com.technostar98.tcbot.api;
-
+package api;
 
 import java.lang.annotation.*;
 
 /**
- * <p>Similar to {@link Commands}, indicates a {@link java.util.Collection} which holds chat filters.</p>
+ * <p>Used to indicate methods that should be called to load up Commands, Filters, or anything else necessary.</p>
  *
  * <p>Created by Bret 'Horfius' Dusseault in 2015.
  * All code in this file is open-source and
@@ -15,7 +14,8 @@ import java.lang.annotation.*;
  * @author Bret 'Horfius' Dusseault
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
+@Target(ElementType.METHOD)
 @Documented
-public @interface Filters {
+@Inherited
+public @interface AssetLoader {
 }

@@ -1,4 +1,4 @@
-package com.technostar98.tcbot.api.command;
+package api.command;
 
 /**
  * <p>Created by Bret 'Horfius' Dusseault in 2015.

@@ -1,22 +1,15 @@
 package com.technostar98.tcbot.modules;
 
-import com.technostar98.tcbot.api.AssetLoader;
-import com.technostar98.tcbot.api.Commands;
-import com.technostar98.tcbot.api.Filters;
-import com.technostar98.tcbot.api.command.Command;
-import com.technostar98.tcbot.api.filter.ChatFilter;
+import api.AssetLoader;
 import com.technostar98.tcbot.lib.config.Configs;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -76,47 +69,20 @@ public class ModuleLoader {
             }
 
             Module module = null;
-            com.technostar98.tcbot.api.Module modAnnotation = null;
-            List<Command> commands = null;
-            List<ChatFilter> filters = null;
+            api.Module modAnnotation = null;
             int index = 0;
-            while((modAnnotation == null || commands == null || filters == null) && index < classes.size()){
+            while((modAnnotation == null) && index < classes.size()){
                 Class c = classes.get(index);
                 if(modAnnotation == null) {
                     Annotation[] annotations = c.getAnnotations();
                     for (Annotation a : annotations) {
-                        if (a instanceof com.technostar98.tcbot.api.Module) {
-                            modAnnotation = (com.technostar98.tcbot.api.Module) a;
+                        if (a instanceof api.Module) {
+                            modAnnotation = (api.Module) a;
                             break;
                         }
                     }
                 }
-
-                if(commands == null || filters == null) {
-                    Field[] fields = c.getFields();//All the fields
-                    for (Field f : fields) {
-                        if (f.getType().equals(List.class) || f.getType().equals(ArrayList.class)
-                                || f.getType().equals(LinkedList.class)) {//We are only looking for a child of List
-                            Annotation[] methodAnnotations = f.getDeclaredAnnotations();
-                            for (Annotation a : methodAnnotations) {
-                                if (commands == null && a instanceof Commands) {//Load the commands
-                                    commands = (List<Command>) f.get(null);//Anything annotated by Commands is assumed static
-                                } else if (filters == null && a instanceof Filters) {//Load the filters
-                                    filters = (List<ChatFilter>) f.get(null);//Anything annotated by Filters is assumed static
-                                }
-                            }
-                        }
-                    }
-                }
                 index++;
-            }
-
-            if(modAnnotation != null){
-                if(commands == null) commands = new ArrayList<>();
-                if(filters == null) filters = new ArrayList<>();
-
-                module = new Module(modAnnotation.name(), modAnnotation.id(), modAnnotation.version(),
-                        commands, filters);
             }
 
             return module;

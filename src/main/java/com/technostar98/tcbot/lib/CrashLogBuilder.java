@@ -1,7 +1,7 @@
 package com.technostar98.tcbot.lib;
 
-import com.technostar98.tcbot.api.lib.Configuration;
-import com.technostar98.tcbot.api.lib.Timestamp;
+import api.lib.Configuration;
+import api.lib.Timestamp;
 import com.technostar98.tcbot.lib.config.Configs;
 import com.technostar98.tcbot.lib.config.Stats;
 

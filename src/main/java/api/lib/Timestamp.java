@@ -1,4 +1,4 @@
-package com.technostar98.tcbot.api.lib;
+package api.lib;
 
 import java.util.Locale;
 

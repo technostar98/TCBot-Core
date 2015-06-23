@@ -1,5 +1,9 @@
 package com.technostar98.tcbot;
 
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
+import api.command.CommandManager;
+import api.command.ICommandManager;
 import com.technostar98.tcbot.bot.BotManager;
 import com.technostar98.tcbot.io.ConfigFile;
 import com.technostar98.tcbot.io.ServerConfigFile;
@@ -10,11 +14,13 @@ import com.technostar98.tcbot.lib.config.Configs;
 import com.technostar98.tcbot.lib.config.ServerConfiguration;
 import com.technostar98.tcbot.lib.config.Stats;
 import com.technostar98.tcbot.lib.exceptions.MissingArgumentException;
+import com.technostar98.tcbot.modules.CommandPool;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 
 /**
  * <p>Main class for launching or relaunching the bot and all of it's other components.</p>
@@ -33,8 +39,9 @@ public class Launcher {
         //TODO Load configs/stats
 
         try {
-            Stats.getStat("startTime").getValue();//Make sure <cinit> is called in configs before anything else
+            Stats.getStat("startTime").getValue();//Make sure <cinit> is called in stats before anything else
 
+            ArgumentParser argLoader = new ArgumentParser();
             List<ArgumentConfiguration> argsConfigs = new ArrayList<>();
             argsConfigs.add(new ArgumentConfiguration("debugMode", "--", false));
 
@@ -55,6 +62,9 @@ public class Launcher {
                 Configs.setStartupConfigurations((HashMap)config.getMappedContents());
             }
 
+            //Load up the api from the internal version
+            CommandManager.commandManager = Optional.of((ICommandManager) CommandPool.INSTANCE);
+
             ServerConfigFile serverConfigFile = new ServerConfigFile();
             serverConfigFile.readFileContents();
             if(serverConfigFile.isInitialized()){
@@ -63,17 +73,18 @@ public class Launcher {
                     BotManager.createNewBot(serverConfigs.get(s));
                 }
             }else{
-                ServerConfiguration esper = new ServerConfiguration("Espernet", "irc.esper.net", "TCBot", "TEMP", "#TechnoDev", "#TheSixPack");
+                //Backup/Default server configuration file
+                ServerConfiguration esper = new ServerConfiguration("Espernet", "irc.esper.net", "TCBot", "TEMP", Lists.newArrayList("Horfius"), "#TechnoDev", "#TheSixPack");
                 serverConfigFile.addField(esper.getServerName(), esper);
                 serverConfigFile.saveFileContents();
 
                 BotManager.createNewBot(esper);
             }
 //        BotManager.createNewBot("irc.technostarhosting.com", "#dev", "#TCBot");
-            BotManager.start();
+            BotManager.start();//Launch bots
 
             if (ArgumentParser.getArgConfig("debugMode").asBoolean()) {
-                BotManager.startDebugMonitor();
+                BotManager.startDebugMonitor(); //TODO actual debug monitor
             }
         }catch (Exception e){
             e.printStackTrace();
