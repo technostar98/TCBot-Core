@@ -15,11 +15,36 @@ import java.util.stream.Collectors;
  * <p>Used to hold and manage any configs for the bot
  * Core configs by name and type are:</p>
  *
- * <p>workingDir - String</p>
- * <p>configDir - String</p>
- * <p>moduleDir - String</p>
- * <p>logDir - String</p>
- * <p>version - String</p>
+ * <table>
+ *      <tr>
+ *          <th>Name</th>
+ *          <th>Type</th>
+ *      </tr>
+ *      <tr>
+ *          <td>workingDir</td>
+ *          <td>String</td>
+ *      </tr>
+ *      <tr>
+ *          <td>configDir</td>
+ *          <td>String</td>
+ *      </tr>
+ *      <tr>
+ *          <td>moduleDir</td>
+ *          <td>String</td>
+ *      </tr>
+ *      <tr>
+ *          <td>logDir</td>
+ *          <td>String</td>
+ *      </tr>
+ *      <tr>
+ *          <td>version</td>
+ *          <td>String</td>
+ *      </tr>
+ *      <tr>
+ *          <td>scriptDir</td>
+ *          <td>String</td>
+ *      </tr>
+ * </table>
  *
  * <p>Created by Bret 'Horfius' Dusseault in 2015.
  * All code in this file is open-source and
@@ -54,6 +79,7 @@ public class Configs {
         String configDir = workingDir + "config" + fileSeparator;
         String moduleDir = workingDir + "modules" + fileSeparator;
         String logDir = workingDir + "logs" + fileSeparator;
+        String scriptDir = workingDir + "scripts" + fileSeparator;
 
         File dir = new File(configDir);
         if(!dir.exists()) dir.mkdir();
@@ -61,12 +87,15 @@ public class Configs {
         if(!dir.exists()) dir.mkdir();
         dir = new File(logDir);
         if(!dir.exists()) dir.mkdir();
+        dir = new File(scriptDir);
+        if(!dir.exists()) dir.mkdir();
 
         addStringConfiguration("workingDir", workingDir);
         addStringConfiguration("configDir", configDir);
         addStringConfiguration("moduleDir", moduleDir);
         addStringConfiguration("logDir", logDir);
         addStringConfiguration("version", "${VERSION}");
+        addStringConfiguration("scriptDir", scriptDir);
     }
 
     public static void loadConfigs(){

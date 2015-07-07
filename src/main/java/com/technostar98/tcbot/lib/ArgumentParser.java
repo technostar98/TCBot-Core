@@ -1,7 +1,9 @@
 package com.technostar98.tcbot.lib;
 
+import api.lib.ValuePair;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.technostar98.tcbot.lib.exceptions.MissingArgumentException;
 
 import java.util.*;
@@ -22,6 +24,7 @@ public class ArgumentParser {
     private Map<String, Integer> necessaryReadTags = Maps.newLinkedHashMap();
     private final String argLine;
     private Map<String, Object> parsedValues = Maps.newHashMap();
+    private List<String> garbageArgs = Lists.newLinkedList();
 
     private static ArgumentParser INSTANCE = null;
     public static final void init(String line) throws RuntimeException{
@@ -39,25 +42,31 @@ public class ArgumentParser {
     /**
      * Arg value after a space, eg. ArgName Value
      */
-    public static final int SPACED = 0x01;
+    public static final int SPACED = 0b1;
     /**
      * Arg value after a '=', eg. ArgName=Value.
      */
-    public static final int EQUALS = 0x02;
+    public static final int EQUALS = 0b10;
     /**
      * Arg value after a ':', eg. ArgName:Value
      */
-    public static final int COLON = 0x03;
+    public static final int COLON = 0b100;
     /**
-     * Arg value in a map format after a space, eg. {Key1:Value1, Key2:Value2, etc}.
-     * Spaces in the collection will be trimmed off if extraneous.
+     * <p>
+     *      Arg value in a map format after a space, eg. {Key1:Value1, Key2:Value2, etc}.
+     *      Spaces in the collection will be trimmed off if extraneous.
+     * </p>
+     * Does <b><i>NOT</i></b> support nested collections.
      */
-    public static final int COLLECTION_MAP = 0x04;
+    public static final int COLLECTION_MAP = 0b1000;
     /**
-     * Arg value in a list format, eg. {Value1, Value2, etc}.
-     * Spaces in the collection will be trimmed off if extraneous.
+     * <p>
+     *      Arg value in a list format, eg. {Value1, Value2, etc}.
+     *      Spaces in the collection will be trimmed off if extraneous.
+     * </p>
+     * Does <b><i>NOT</i></b> support nested collections.
      */
-    public static final int COLLECTION_LIST = 0x05;
+    public static final int COLLECTION_LIST = 0b10000;
 
     private ArgumentParser(String argLine){
         this.argLine = argLine.trim();
@@ -73,54 +82,148 @@ public class ArgumentParser {
         necessaryReadTags.put(argName, readTag);
     }
 
-    
+    public void processArguments(){
+        String[] args0 = argLine.split(" ");
+        List<String> args1 = Lists.newLinkedList();
+        String conjoinedArg = null;
 
-    public static void loadArguments(List<ArgumentConfiguration> args){
-        configurations = new LinkedList<>(args);
-        configurations.forEach(a -> {
-            if(configIndexes.containsKey(a.getArgName()))
-                Logger.warning("Multiple argument configurations with name: " + a.getArgName());
-            configIndexes.put(a.getArgName(), configurations.indexOf(a));
-        });
-    }
-
-    public static void parseArguments(String[] args) throws MissingArgumentException{
-        for(String s : args){
-            configurations.forEach(a ->{
-                if(s.startsWith(a.getPrefix())){
-                    String preOut = s.substring(s.indexOf(a.getPrefix()) + a.getPrefix().length());
-                    if(preOut.indexOf('=') > 0){
-                        if(preOut.substring(0, preOut.indexOf('=')).equals(a.getArgName())){
-                            String value = preOut.substring(preOut.indexOf('=') + 1);
-                            a.setValue(value);
-                            a.setFulfilled(true);
-                        }
-                    }
+        for(String arg : args0){
+            if(arg.startsWith("{") && conjoinedArg == null){ //If it's the start of a collection and a collection has started
+                conjoinedArg = arg;
+            }else if(conjoinedArg != null){//Adds trailing collection bits
+                conjoinedArg += arg;
+                if(arg.endsWith("}")){
+                    args1.add(conjoinedArg);
+                    conjoinedArg = null;
                 }
-            });
-        }
-
-        List<String> missingArgs = new ArrayList<>();
-        configurations.forEach(a ->{
-            if(a.isNecessary() && !a.isFulfilled()) {
-                missingArgs.add(a.getPrefix() + a.getArgName());
+            }else{
+                args1.add(arg);
             }
-        });
+        }
+        args0 = new String[args1.size()];
+        for(int i = 0; i < args1.size(); i++) args0[i] = args1.get(i);
 
-        StringJoiner joiner = new StringJoiner(", ");
-        if(missingArgs.size() > 0){
-            missingArgs.forEach(a -> joiner.add(a));
-            throw new MissingArgumentException("Missing arguments: " + joiner.toString());
+        int i = 0;
+        while(i < args0.length) {
+            ValuePair<Object, ValuePair<String, Integer>> processed = processArg(i, args0);
+            if(processed.getValue1() == null){
+                garbageArgs.add(processed.getValue2().getValue1());
+            }else{
+                parsedValues.put(processed.getValue2().getValue1(), processed.getValue1());
+            }
+            i = processed.getValue2().getValue2();
         }
     }
 
-    public static ArgumentConfiguration getArgConfig(String name){
-        if(Optional.of(name).isPresent())
-            if(configIndexes.containsKey(name))
-                return configurations.get(configIndexes.get(name));
-            else
-                return null;
-        else
-            return null;
+    private ValuePair<Object, ValuePair<String, Integer>> processArg(int index, String[] argList){
+        String arg = argList[index];
+        Object value = null;
+        if(arg.contains(":")){//Technically COLON and EQUALS checks
+            String[] temp = arg.split(":");
+            arg = temp[0];
+            value = temp[1];
+        }else if(arg.contains("=")){
+            String[] temp = arg.split("=");
+            arg = temp[0];
+            value = temp[1];
+        }
+
+        if(!necessaryArguments.contains(arg) && !optionalArguments.contains(arg)){//Pulls out garbage args
+            return new ValuePair<>(null, new ValuePair<>(arg,++index));
+        }
+
+        int readTags;
+        if(necessaryArguments.contains(arg)) readTags = necessaryReadTags.get(arg);
+        else readTags = optionalReadTags.get(arg);
+
+        try{
+            if((readTags & SPACED) == SPACED){
+                value = argList[++index];
+            }else if((readTags & COLLECTION_MAP) == COLLECTION_MAP){
+                String tempVal = argList[++index];
+                value = Maps.newHashMap();
+
+                if(!tempVal.startsWith("{") && !tempVal.endsWith("}")) throw new IllegalArgumentException("Wrongly formatted map collection.");
+                tempVal = tempVal.substring(1, tempVal.length() - 1);
+                String[] tempVals = tempVal.split(",\\ *");
+
+                for(String v : tempVals){
+                    v = v.trim();
+                    String name, vValue;
+
+                    if(v.contains(":")){
+                        String[] vVals = v.split(":");
+                        name = vVals[0].trim();
+                        vValue = vVals[1].trim();
+                    }else if(v.contains("=")){
+                        String[] vVals = v.split("=");
+                        name = vVals[0].trim();
+                        vValue = vVals[1].trim();
+                    }else{
+                        throw new IllegalArgumentException("Incorrectly formatted map value. Use '=' or ':' when assigning values");
+                    }
+
+                    ((Map)value).put(name, vValue);
+                }
+            }else if((readTags & COLLECTION_LIST) == COLLECTION_LIST){
+                String tempVal = argList[++index];
+                value = Lists.newLinkedList();
+
+                if(!tempVal.startsWith("{") && !tempVal.endsWith("}")) throw new IllegalArgumentException("Wrongly formatted list collection.");
+                tempVal = tempVal.substring(1, tempVal.length() - 1);
+                String[] tempVals = tempVal.split(",\\ *");
+
+                for(String v : tempVals){
+                    ((List)value).add(v.trim());
+                }
+            }
+
+            return new ValuePair<>(value, new ValuePair<>(arg, ++index));
+        }catch (Exception e){
+            System.err.println("Error caught when parsing argument value for arg: " + arg + " at index " + index + ".\nException: " + e.getMessage());
+            return new ValuePair<>(null, new ValuePair<>(arg, index++));
+        }
+    }
+
+    public int missedNecessaryArgs() {
+        return getMissedArgs().size();
+    }
+
+    public List<String> getMissedArgs(){
+        List<String> args = Lists.newLinkedList(necessaryArguments);
+        for(Iterator i = parsedValues.keySet().iterator(); i.hasNext();){
+            Object temp = i.next();
+            if(args.contains(temp)) args.remove(temp);
+        }
+
+        return args;
+    }
+
+    public List<String> getGarbageArgs(){
+        return garbageArgs;
+    }
+
+    public Map<String, Object> getParsedValues(){
+        return parsedValues;
+    }
+
+    public Map<String, Integer> getNecessaryReadTags(){
+        return necessaryReadTags;
+    }
+
+    public Map<String, Integer> getOptionalReadTags(){
+        return optionalReadTags;
+    }
+
+    public List<String> getNecessaryArguments(){
+        return necessaryArguments;
+    }
+
+    public List<String> getOptionalArguments(){
+        return optionalArguments;
+    }
+
+    public Object getArgumentValue(String arg){
+        return parsedValues.get(arg);
     }
 }
