@@ -27,8 +27,8 @@ public class Module {
         this.version = version;
 
         final ICommandManager manager = CommandManager.commandManager.get();
-        manager.getModuleCommands(name).forEach(c -> commands.add(c.getName()));
-        manager.getModuleFilters(name).forEach(c -> commands.add(c.getName()));
+        manager.getModuleCommands(name).keySet().stream().forEach(c -> commands.add(c));
+        manager.getModuleFilters(name).keySet().stream().forEach(c -> commands.add(c));
     }
 
     public String getName() {

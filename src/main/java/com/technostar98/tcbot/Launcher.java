@@ -1,9 +1,9 @@
 package com.technostar98.tcbot;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
 import api.command.CommandManager;
 import api.command.ICommandManager;
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
 import com.technostar98.tcbot.bot.BotManager;
 import com.technostar98.tcbot.io.ConfigFile;
 import com.technostar98.tcbot.io.ServerConfigFile;
@@ -14,7 +14,9 @@ import com.technostar98.tcbot.lib.config.ServerConfiguration;
 import com.technostar98.tcbot.lib.config.Stats;
 import com.technostar98.tcbot.modules.CommandPool;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.StringJoiner;
 
 
 /**
@@ -72,14 +74,14 @@ public class Launcher {
                 }
             }else{
                 //Backup/Default server configuration file
-                ServerConfiguration esper = new ServerConfiguration("Espernet", "irc.esper.net", "TCBot", "TEMP", Lists.newArrayList("Horfius"), "#TechnoDev", "#TheSixPack");
+                ServerConfiguration esper = new ServerConfiguration("Espernet", "irc.esper.net", "TCBot", "TEMP", Lists.newArrayList("Horfius"), "#TechnoDev");
                 serverConfigFile.addField(esper.getServerName(), esper);
                 serverConfigFile.saveFileContents();
 
                 BotManager.createNewBot(esper);
             }
-//        BotManager.createNewBot("irc.technostarhosting.com", "#dev", "#TCBot");
-//            BotManager.start();//Launch bots
+
+            BotManager.start();//Launch bots
 
             if (Boolean.valueOf((String)argLoader.getArgumentValue("debug"))) {
                 BotManager.startDebugMonitor(); //TODO actual debug monitor

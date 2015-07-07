@@ -21,12 +21,13 @@ import org.pircbotx.hooks.managers.ThreadedListenerManager;
 public class BotConfigurationBuilder {
     //TODO get config builder connected to database for reading data about each server
 
+    @Deprecated
     public static Configuration<PircBotX> buildConfig(String server, String... channels){
         //TODO actual configuration build based upon server, currently hardcoded
         ListenerManager<PircBotX> manager = new ThreadedListenerManager<>();
-        manager.addListener(new ListenerPipeline(server, channels)); //TODO Dynamically load channels
+        manager.addListener(new ListenerPipeline(server, channels));
 
-        Configuration.Builder<PircBotX> configurationBuilder = new Configuration.Builder<PircBotX>()
+        Configuration.Builder<PircBotX> configurationBuilder = new Configuration.Builder<>()
                 .setAutoNickChange(true)
                 .setAutoReconnect(true)
                 .setListenerManager(manager)
@@ -43,9 +44,9 @@ public class BotConfigurationBuilder {
 
     public static Configuration<PircBotX> buildConfig(ServerConfiguration config){
         ListenerManager<PircBotX> manager = new ThreadedListenerManager<>();
-        manager.addListener(new ListenerPipeline(config.getServerAddress(), config.getAutoJoinChannels())); //TODO Dynamically load channels
+        manager.addListener(new ListenerPipeline(config.getServerAddress(), config.getAutoJoinChannels()));
 
-        Configuration.Builder<PircBotX> configurationBuilder = new Configuration.Builder<PircBotX>()
+        Configuration.Builder<PircBotX> configurationBuilder = new Configuration.Builder<>()
                 .setAutoNickChange(false)
                 .setAutoReconnect(true)
                 .setListenerManager(manager)

@@ -18,10 +18,10 @@ import java.util.HashMap;
  * @author Bret 'Horfius' Dusseault
  */
 public class IRCBot {
-    private PircBotX bot;
+    public final PircBotX bot;
     private BotState state;
     private String preferredNick;
-    private ServerConfiguration serverConfiguration;
+    public final ServerConfiguration serverConfiguration;
     private HashMap<String, api.lib.Configuration<?>> configs = new HashMap<>();
 
     protected IRCBot(Configuration config, BotState state, ServerConfiguration configuration){
@@ -41,10 +41,6 @@ public class IRCBot {
 
     public PircBotX getBot() {
         return bot;
-    }
-
-    public void setBot(PircBotX bot) {
-        this.bot = bot;
     }
 
     public BotState getState() {
@@ -69,5 +65,9 @@ public class IRCBot {
 
     public ServerConfiguration getServerConfiguration() {
         return serverConfiguration;
+    }
+
+    public void addConfiguration(String key, api.lib.Configuration configuration){
+        configs.put(key, configuration);
     }
 }

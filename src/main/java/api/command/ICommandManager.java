@@ -4,6 +4,7 @@ import api.filter.ChatFilter;
 import com.technostar98.tcbot.modules.Module;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>Created by Bret 'Horfius' Dusseault in 2015.
@@ -17,11 +18,11 @@ import java.util.List;
 public interface ICommandManager {
 
     public Command getCommand(String name);
-    public List<Command> getCommands();
+    public Map<String, Command> getCommands();
     public ChatFilter getFilter(String name);
-    public List<ChatFilter> getFilters();
+    public List<String> getFilters();
     public Module getModule(String name);
-    public List<Module> getModules();
+    public Map<String, Module> getModules();
     public boolean doesCommandExist(String name);
     public boolean doesFilterExist(String name);
     public boolean doesModuleExist(String name);
@@ -34,9 +35,9 @@ public interface ICommandManager {
     public void removeFilter(String name);
     public void removeModule(String name, String server, String channel);
     public Command getModuleCommand(String module, String name);
-    public List<Command> getModuleCommands(String module);
+    public Map<String, Command> getModuleCommands(String module);
     public ChatFilter getModuleFilter(String module, String name);
-    public List<ChatFilter> getModuleFilters(String module);
+    public Map<String, ChatFilter> getModuleFilters(String module);
     public boolean doesModuleCommandExist(String module, String name);
     public boolean doesModuleFilterExist(String module, String name);
     public void addModuleCommand(String module, Command command);

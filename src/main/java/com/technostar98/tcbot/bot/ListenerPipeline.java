@@ -1,13 +1,13 @@
 package com.technostar98.tcbot.bot;
 
-import com.google.common.base.Optional;
 import api.command.Command;
 import api.command.ICommandManager;
 import api.command.TextCommand;
 import api.filter.ChatFilter;
 import api.filter.FilterResponse;
-import com.technostar98.tcbot.command.CommandManager;
 import api.lib.WrappedEvent;
+import com.google.common.base.Optional;
+import com.technostar98.tcbot.command.CommandManager;
 import com.technostar98.tcbot.command.TextCommandParser;
 import com.technostar98.tcbot.lib.Logger;
 import org.pircbotx.PircBotX;

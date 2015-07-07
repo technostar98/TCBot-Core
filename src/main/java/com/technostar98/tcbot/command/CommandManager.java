@@ -1,22 +1,20 @@
 package com.technostar98.tcbot.command;
 
-import com.google.common.collect.Maps;
 import api.command.Command;
-import api.command.CommandType;
 import api.command.ICommandManager;
 import api.command.TextCommand;
 import api.filter.ChatFilter;
-import api.lib.WrappedEvent;
+import com.google.common.base.Optional;
+import com.google.common.collect.Maps;
+import com.google.common.eventbus.EventBus;
 import com.technostar98.tcbot.io.ChannelModulesFile;
 import com.technostar98.tcbot.io.ChannelValuesFile;
 import com.technostar98.tcbot.io.CommandsFile;
+import com.technostar98.tcbot.lib.Logger;
 import com.technostar98.tcbot.modules.Module;
-import org.pircbotx.PircBotX;
-import org.pircbotx.hooks.events.MessageEvent;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -33,12 +31,13 @@ import java.util.stream.Collectors;
  * @author Bret 'Horfius' Dusseault
  */
 public class CommandManager {
-    private ArrayList<Command> commands = new ArrayList<>();
-    private ArrayList<ChatFilter> filters = new ArrayList<>();
-    private ArrayList<TextCommand> textCommands = new ArrayList<>();
-    private HashMap<String, Object> channelValues = new HashMap<>();
+    private Map<String, Command> commands = Maps.newHashMap();
+    private Map<String, ChatFilter> filters = Maps.newHashMap();
+    private Map<String, TextCommand> textCommands = Maps.newHashMap();
+    private Map<String, Object> channelValues = Maps.newHashMap();
     private ArrayList<String> modulesLoaded = new ArrayList<>();
-    private final String channel, server;
+    public final EventBus eventBus = new EventBus();
+    public final String channel, server;
 
     public CommandManager(String server, String channel){
         this.channel = channel;
@@ -47,135 +46,94 @@ public class CommandManager {
         //TODO load values + configs from database
     }
 
-    public List<Command> getCommands(String name){
-        return commands.stream().filter(c -> c.getName().equals(name)).collect(Collectors.toList());
+    public List<Command> getCommandsList(){
+        return this.commands.keySet().stream().map(k -> commands.get(k)).collect(Collectors.toList());
     }
 
-    public List<Command> getCommands(){
-        return this.commands.isEmpty() ? null : this.commands;
+    public Map<String, Command> getCommands(){
+        return commands;
     }
 
-    public List<ChatFilter> getFilters(String name){
-        return filters.stream().filter(f -> f.getName().equals(name)).collect(Collectors.toList());
+    public Optional<Command> getCommand(String name){
+        Map commands = getCommands();
+        return Optional.fromNullable((Command) commands.get(name));
     }
 
-    public List<ChatFilter> getFilters(){
-        return this.filters.isEmpty() ? null : this.filters;
+    public Map<String, ChatFilter> getFilters(){
+        return filters;
     }
 
-    public Command getCommand(String name){
-        List<Command> commands = getCommands(name);
-        if(commands != null && !commands.isEmpty())
-            return commands.get(0);
-        else
-            return null;
-    }
-
-    public ChatFilter getFilter(String name){
-        List<ChatFilter> filters = getFilters(name);
-        if(filters != null && !filters.isEmpty()) return filters.get(0);
-        else return null;
+    public Optional<ChatFilter> getFilter(String name){
+        return Optional.fromNullable(getFilters().get(name));
     }
 
     public List<String> getModules(){
         return this.modulesLoaded;
     }
 
-    public List<String> getModules(String name){
-        return modulesLoaded.stream().filter(m -> m.equals(name)).collect(Collectors.toList());
+    public boolean isModuleLoaded(String name){
+        return modulesLoaded.indexOf(name) >= 0;
     }
 
-    public String getModule(String name){
-        List<String> modules = getModules();
-        if(modules != null && !modules.isEmpty())
-            return modules.get(0);
-        else
-            return null;
+    public List<TextCommand> getTextCommandsList(){
+        return this.textCommands.keySet().stream().map(k -> textCommands.get(k)).collect(Collectors.toList());
     }
 
-    public List<TextCommand> getTextCommands(){
+    public Map<String, TextCommand> getTextCommands(){
         return this.textCommands;
     }
 
-    public List<TextCommand> getTextCommands(String name){
-        return this.textCommands.parallelStream().filter(t -> t.getName().equals(name)).collect(Collectors.toList());
+    public Optional<TextCommand> getTextCommand(String name){
+        Map commands = getTextCommands();
+        return Optional.fromNullable((TextCommand)commands.get(name));
     }
 
-    public TextCommand getTextCommand(String name){
-        List<TextCommand> t = getTextCommands(name);
-        if(t != null && !t.isEmpty())
-            return t.get(0);
-        else
-            return null;
-    }
-
-    public HashMap<String, Object> getChannelValues(){
+    public Map<String, Object> getChannelValues(){
         return this.channelValues;
     }
 
-    public String enactCommand(CommandType type, String name, WrappedEvent<MessageEvent<PircBotX>> event){
-//        System.out.println("COMMAND: " + name + "\tUSER: " + event.getEvent().getUser().getPreferredNick());
-
-        List<Command> matched = commands.parallelStream().filter(c -> /*c.getCommandType() == type &&*/
-                (c.getName().equals(name) || c.getAlias().equals(name))).collect(Collectors.toList());
-        if(!matched.isEmpty()) return matched.get(0).getMessage(event);
-        else return null;
-    }
-
     public void addCommand(Command command){
-        if(!commands.contains(command)) commands.add(command);
+        command.setServer(server);
+        commands.put(command.getName(), command);
     }
 
     public void addFilter(ChatFilter filter){
-        if(!this.filters.contains(filter))
-            this.filters.add(filter);
+        filter.setServer(server);
+        eventBus.register(filter);
     }
 
     public void addModule(String name){
         ICommandManager manager = api.command.CommandManager.commandManager.get();
-        Module m = manager.getModule(name);
+        manager.loadModule(name, server, channel);
+        Optional<Module> m = Optional.fromNullable(manager.getModule(name));
 
-        if(m != null){
+        if(m.isPresent()){
             modulesLoaded.add(name);
 
-            for(String s : m.getCommands()){
-                addCommand(manager.getModuleCommand(m.getName(), s));
-                getCommand(s).setServer(server);
+            for(String s : m.get().getCommands()){
+                if(getCommand(s).isPresent()){
+                    Logger.warning("Tried overwriting command %s in channel %s on server %s.", s, channel, server);
+                    continue;
+                }
+                addCommand(manager.getModuleCommand(m.get().getName(), s));
             }
-            for(String s : m.getFilters()){
-                addFilter(manager.getModuleFilter(m.getName(), s));
-                getFilter(s).setServer(server);
+            for(String s : m.get().getFilters()){
+                addFilter(manager.getModuleFilter(m.get().getName(), s));
             }
         }
     }
 
     public void addTextCommand(TextCommand textCommand){
-        TextCommand tc = getTextCommand(textCommand.name);
-
-        if(tc == null){
-            textCommands.add(textCommand);
-        }else{
-            textCommands.remove(textCommands.indexOf(tc));
-            textCommands.add(textCommand);
-        }
-    }
-
-    public String getChannel() {
-        return channel;
-    }
-
-    public String getServer() {
-        return server;
+        textCommands.put(textCommand.name, textCommand);
     }
 
     public void removeCommand(String name){
-        if(getCommand(name) != null)
-            commands.remove(commands.indexOf(getCommand(name)));
+        commands.remove(name);
     }
 
     public void removeFilter(String name){
-        if(getFilter(name) != null)
-            filters.remove(filters.indexOf(getFilter(name)));
+        eventBus.unregister(getFilter(name));
+        filters.remove(name);
     }
 
     public void removeModule(String name){
@@ -183,19 +141,19 @@ public class CommandManager {
         Module m = manager.getModule(name);
 
         for(String key : m.getCommands()){
-            commands.remove(manager.getModuleCommand(m.getName(), key));
+            commands.remove(manager.getModuleCommand(name, key));
         }
 
         for(String key : m.getFilters()){
-            filters.remove(manager.getModuleFilter(m.getName(), key));
+            filters.remove(manager.getModuleFilter(name, key));
         }
 
         modulesLoaded.remove(name);
+        manager.removeModule(name, server, channel);
     }
 
     public void removeTextCommand(String name){
-        if(getTextCommand(name) != null)
-            textCommands.remove(textCommands.indexOf(getTextCommand(name)));
+        textCommands.remove(name);
     }
 
     public void setValue(String key, Object value){
@@ -211,15 +169,11 @@ public class CommandManager {
     }
 
     public boolean hasCommand(String name){
-        return commands.stream().anyMatch(c -> c.getName().equals(name));
+        return commands.containsKey(name);
     }
 
     public boolean hasFilter(String name){
-        return filters.stream().anyMatch(c -> c.getName().equals(name));
-    }
-
-    public boolean isModuleLoaded(String name){
-        return modulesLoaded.contains(name);
+        return filters.containsKey(name);
     }
 
     public boolean isFilterAvailable(String name){
@@ -232,9 +186,7 @@ public class CommandManager {
         ChannelValuesFile channelValuesFile = new ChannelValuesFile(server, channel);
         ChannelModulesFile modulesFile = new ChannelModulesFile(server, channel);
 
-        commandsFile.setContents(textCommands.stream().collect(Collectors.<TextCommand, String, TextCommand>toMap(
-                command -> command.getName(),
-                command -> command)));
+        commandsFile.setContents(textCommands);
         channelValuesFile.setContents(this.channelValues);
         modulesFile.setContents(modulesLoaded.stream().collect(Collectors.<String, String, String>toMap(
                 module -> module,
@@ -259,7 +211,7 @@ public class CommandManager {
             Map<String, TextCommand> commands = commandsFile.getMappedContents();
             Map<String, Object> values = channelValuesFile.getMappedContents();
             List<String> modules = modulesFile.getFields();
-            this.textCommands = (ArrayList)commands.keySet().stream().map(s -> commands.get(s)).collect(Collectors.toList());
+            this.textCommands = Maps.newHashMap(commands);
             this.channelValues = Maps.newHashMap(values);
 
             modules.forEach(m -> {

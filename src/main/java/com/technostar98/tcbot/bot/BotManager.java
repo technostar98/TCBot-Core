@@ -1,15 +1,20 @@
 package com.technostar98.tcbot.bot;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.AbstractExecutionThreadService;
+import com.google.common.util.concurrent.Service;
+import com.google.common.util.concurrent.ServiceManager;
 import com.technostar98.tcbot.io.ServerConfigFile;
 import com.technostar98.tcbot.lib.Logger;
 import com.technostar98.tcbot.lib.config.ServerConfiguration;
 import org.pircbotx.PircBotX;
-import org.pircbotx.exception.IrcException;
 import org.pircbotx.hooks.Listener;
 
-import java.io.IOException;
-import java.util.*;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * <p>Used to manage all the bots and perform actions on all of them</p>
@@ -23,7 +28,7 @@ import java.util.*;
  * @author Bret 'Horfius' Dusseault
  */
 public class BotManager {
-
+    private static ServiceManager manager;
     private static HashMap<String, IRCBot> bots = new HashMap<>(); //Bots by server
     private static final Object lock = new Object();
     private static boolean debuggerClosed = false;
@@ -39,16 +44,82 @@ public class BotManager {
 
     public static void start(){
         synchronized (lock) {
+            List<Service> services = Lists.newLinkedList();
             for (final Map.Entry<String, IRCBot> e : bots.entrySet()) {
-                Thread run = new Thread(() -> {
-                    try {
-                        e.getValue().getBot().startBot();
-                    } catch (IOException | IrcException f) {
-                        f.printStackTrace();
+                Service s = new AbstractExecutionThreadService() {
+                    IRCBot bot = e.getValue();
+                    String server = e.getKey();
+
+                    @Override
+                    protected void run() throws Exception {
+                        Logger.info("Bot for %s server starting up.", server);
+                        bot.getBot().startBot();
                     }
-                });
-                run.start();
+
+                    @Override
+                    protected void startUp() throws Exception {
+                        super.startUp();
+                    }
+
+                    @Override
+                    protected void shutDown() throws Exception {
+                        super.shutDown();
+                        bot.getBot().stopBotReconnect();
+                        bot.getBot().sendIRC().quitServer("Adios");
+                        getBotOutputPipe(server).messengerPipeline.setOutputEnabled(false);
+                        getBotOutputPipe(server).closeListener();
+                        try {
+                            Thread.sleep(50L);
+                        } catch (InterruptedException e1) {
+                            e1.printStackTrace();
+                        }
+                        bot.getBot().getInputParser().close();
+                        bots.remove(server);
+                    }
+
+                    @Override
+                    protected void triggerShutdown() {
+                        super.triggerShutdown();
+                        Logger.info("Bot for server %s is shutting down. Closing all tied resources.", server);
+
+                        try {
+                            shutDown();
+                        } catch (Exception e1) {
+                            e1.printStackTrace();
+                        }
+                    }
+                };
+                services.add(s);
             }
+
+            manager = new ServiceManager(services);
+            manager.addListener(new ServiceManager.Listener() {
+                @Override
+                public void healthy() {
+                    super.healthy();
+                    Logger.info("All bot instances started correctly.");
+                }
+
+                @Override
+                public void stopped() {
+                    super.stopped();
+                    Logger.info("All bots shutdown.");
+                }
+
+                @Override
+                public void failure(Service service) {
+                    super.failure(service);
+                    try {
+                        IRCBot bot = (IRCBot)service.getClass().getField("bot").get(service);
+                        Logger.info("Bot for server %s has failed to start.", bot.getServerConfiguration().getServerName());
+                    } catch (NoSuchFieldException e) {
+                        e.printStackTrace();
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            manager.startAsync();
 
             dataManager = new Thread(() -> {
                 while(bots.size() > 0){
@@ -71,14 +142,7 @@ public class BotManager {
                 dataManager.interrupt();
                 while(dataManager.getState() != Thread.State.TIMED_WAITING){}
 
-                for (Map.Entry<String, IRCBot> e : bots.entrySet()) {
-                    e.getValue().getBot().stopBotReconnect();
-                    e.getValue().getBot().sendIRC().quitServer("Adios");
-                    Thread.sleep(50L);
-                    e.getValue().getBot().getInputParser().close();
-
-                    bots.remove(e.getKey());
-                }
+                manager.servicesByState().entries().parallelStream().filter(e -> e.getKey() == Service.State.RUNNING).forEach(e -> e.getValue().stopAsync());
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -128,8 +192,6 @@ public class BotManager {
                 if(bot != null){
                     //TODO change server
                 }
-
-
             }catch(Exception e){
                 e.printStackTrace();
             }
