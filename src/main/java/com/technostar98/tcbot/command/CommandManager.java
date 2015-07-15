@@ -6,7 +6,6 @@ import api.command.TextCommand;
 import api.filter.ChatFilter;
 import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
-import com.google.common.eventbus.EventBus;
 import com.technostar98.tcbot.io.ChannelModulesFile;
 import com.technostar98.tcbot.io.ChannelValuesFile;
 import com.technostar98.tcbot.io.CommandsFile;
@@ -36,7 +35,7 @@ public class CommandManager {
     private Map<String, TextCommand> textCommands = Maps.newHashMap();
     private Map<String, Object> channelValues = Maps.newHashMap();
     private ArrayList<String> modulesLoaded = new ArrayList<>();
-    public final EventBus eventBus = new EventBus();
+    public final EventBus eventBus = new CancellableEventBus();
     public final String channel, server;
 
     public CommandManager(String server, String channel){

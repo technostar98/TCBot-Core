@@ -5,59 +5,46 @@ import org.pircbotx.PircBotX;
 import org.pircbotx.hooks.events.*;
 
 /**
- * <p>Created by Bret 'Horfius' Dusseault in 2015.
- * All code in this file is open-source and
- * may be used with permission of Bret Dusseault.
- * Any violations of this violate the terms of
- * the license of TCBot-Core.</p>
+ * <p>Utility class for use with {@link com.technostar98.tcbot.command.EventBus}. Add methods
+ * which are annotated with {@link api.filter.event.SubscribedEvent} and have 1 argument which is
+ * a child of {@link api.filter.event.Event}</p>
  *
  * @author Bret 'Horfius' Dusseault
  */
-public abstract class ChatFilter implements Comparable<ChatFilter>{
-    private final String name;
-    private final int priority;
-    private String server;
+public abstract class ChatFilter{
+    /**
+     * Potentially non-unique name of filter.
+     */
+    public final String name;
 
-    public ChatFilter(String name, String server, int priority){
+    /**
+     * <p>ID used for identifying different filters from one another. Must be unique within the same package of filters.</p>
+     * <p>Can be the same as ids from other module filters or core bot filters because of how IDs are stored.</p>
+     */
+    public final String ID;
+
+    private String server, channel;
+
+    public ChatFilter(String name, String server, String channel, String ID){
         this.name = name;
         this.server = server;
-        this.priority = priority;
-    }
-
-    public abstract FilterResponse onUserMessage(WrappedEvent<MessageEvent<PircBotX>> e);
-    public abstract FilterResponse onUserJoin(WrappedEvent<JoinEvent<PircBotX>> e);
-    public abstract FilterResponse onUserAction(WrappedEvent<ActionEvent<PircBotX>> e);
-    public abstract FilterResponse onServerConnect(WrappedEvent<ConnectEvent<PircBotX>> e);
-    public abstract FilterResponse onServerDisconnect(WrappedEvent<DisconnectEvent<PircBotX>> e);
-    public abstract FilterResponse onChannelDisconnect(WrappedEvent<KickEvent<PircBotX>> e);
-    public abstract FilterResponse onQuit(WrappedEvent<QuitEvent<PircBotX>> e);
-    public abstract FilterResponse onSocketConnect(WrappedEvent<SocketConnectEvent<PircBotX>> e);
-    public abstract FilterResponse onNickPinged(WrappedEvent<MessageEvent<PircBotX>> e);
-    public abstract FilterResponse onUserKick(WrappedEvent<KickEvent<PircBotX>> e);
-    public abstract FilterResponse onKicked(WrappedEvent<KickEvent<PircBotX>> e);
-
-    public void close(){
-
-    }
-
-    public void setServer(String server) {
-        this.server = server;
-    }
-
-    public String getName() {
-        return name;
+        this.channel = channel;
+        this.ID = ID;
     }
 
     public String getServer() {
         return server;
     }
 
-    public int getPriority() {
-        return priority;
+    public void setServer(String server) {
+        this.server = server;
     }
 
-    @Override
-    public int compareTo(ChatFilter o) {
-        return this.getPriority() - o.priority;
+    public String getChannel() {
+        return channel;
+    }
+
+    public void setChannel(String channel) {
+        this.channel = channel;
     }
 }

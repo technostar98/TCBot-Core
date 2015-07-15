@@ -26,12 +26,14 @@ public abstract class Command {
     public List<UserLevel> requiredULs;
     public final CommandType commandType;
     private String server;
+    public final String ID;
 
-    public Command(String name, CommandType type, String server, UserLevel... uls){
+    public Command(String name, CommandType type, String server, String ID, UserLevel... uls){
         this.name = name;
         this.alias = name;
         this.requiredULs = Arrays.asList(uls);
         this.commandType = type;
+        this.ID = ID;
     }
 
     public String getAlias() {

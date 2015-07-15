@@ -1,8 +1,13 @@
 package com.technostar98.tcbot.modules;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Maps;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -15,55 +20,23 @@ import java.util.stream.Collectors;
  * @author Bret 'Horfius' Dusseault
  */
 public class ModuleManager {
-    private List<String> loadedModuleNames = new ArrayList<>();
-    private HashMap<String, String> fileToLocalizedNames = new HashMap<>();
-    private HashMap<String, Module> loadedModules = new HashMap<>();
+    protected BiMap<String, Integer> moduleIDs = HashBiMap.create();
+    protected Map<Integer, Module> modules = Maps.newHashMap();
+    protected BiMap<String, String> moduleIDtoFiles = HashBiMap.create();
 
-    public List<String> getModuleNames(){
-        return loadedModuleNames;
-    }
+    public void loadModule(String key){
+        if(modules.containsKey(moduleIDs.get(key))){
 
-    public boolean isModuleLoaded(String name){
-        return loadedModuleNames.contains(name) || fileToLocalizedNames.containsKey(name);
-    }
-
-    public Module getModule(String name){
-        return isModuleLoaded(name) ? loadedModules.get(name) == null ?
-                loadedModules.get(fileToLocalizedNames.get(name)) : loadedModules.get(name) : null;
-    }
-
-    public List<Module> getModules(){
-        return loadedModules.isEmpty() ? null : loadedModuleNames.parallelStream().map(s -> loadedModules.get(s)).collect(Collectors.toList());
-    }
-
-    public boolean loadModule(String name){
-        if(isModuleLoaded(name))
-            return true;
-        else{
-            ModuleLoader loader = new ModuleLoader(name);
-            Module module = loader.loadModule();
-//            System.out.println("Module " + module.getName() + " is " + (module == null ? "null" : "not null"));
-//            if(module != null) System.out.println("Command count: " + module.getCommands().size() +
-//                "\nFilter size: " + module.getFilters().size());
-//            System.out.println("Putting key: " + name + "\tvalue: " + module.getName());
-//            System.out.println("Loaded check: " + isModuleLoaded(name));
-
-            if(module == null)
-                return false;
-            else {
-                fileToLocalizedNames.put(name, module.getName());
-                loadedModuleNames.add(module.getName());
-                loadedModules.put(module.getName(), module);
-
-                return true;
-            }
         }
     }
 
-    public void unloadModule(String name){
-        if(isModuleLoaded(name)){
-            loadedModules.remove(name);
-            loadedModuleNames.remove(name);
+    public Module getModule(String name) {
+        if(moduleIDs.containsKey(name)){
+            return  modules.get(moduleIDs.get(name));
+        }else if(modules.keySet().stream().anyMatch(i -> modules.get(i).getName().equals(name))){
+            return modules.keySet().stream().filter(i -> modules.get(i).getName().equals(name)).map(i -> modules.get(i)).collect(Collectors.toList()).get(0);
         }
+
+        return null;
     }
 }

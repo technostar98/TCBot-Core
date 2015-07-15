@@ -3,15 +3,18 @@ package com.technostar98.tcbot.modules;
 import api.command.Command;
 import api.command.ICommandManager;
 import api.filter.ChatFilter;
+import com.google.common.base.Optional;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Table;
 import com.google.common.collect.TreeBasedTable;
 import com.technostar98.tcbot.command.Commands.*;
+import com.technostar98.tcbot.command.Filters.TestFilter;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * <p>Created by Bret 'Horfius' Dusseault in 2015.
@@ -26,9 +29,8 @@ public enum CommandPool implements ICommandManager {
     INSTANCE;
 
     //IDs
-    private BiMap<String, Integer> botCommandIDs = HashBiMap.create();//String id -- int id; Module command string ids are prefaced by their module id + ':', int id unaffected
-    private BiMap<String, Integer> botFilterIDS = HashBiMap.create();//String id -- int id; Module filter string ids are prefaces by their module id + ':', int id unaffected
-    private BiMap<String, Integer> moduleIDS = HashBiMap.create();//String module id -- internalized id
+    private BiMap<String, Integer> botCommandIDs = HashBiMap.create();//String ID -- int ID; Module command string ids are prefaced by their module ID + ':', int ID unaffected
+    private BiMap<String, Integer> botFilterIDS = HashBiMap.create();//String ID -- int ID; Module filter string ids are prefaces by their module ID + ':', int ID unaffected
 
     private Map<Integer, Command> botCommands = new ConcurrentHashMap<>();
     private Map<Integer, ChatFilter> botFilters = new ConcurrentHashMap<>();
@@ -51,45 +53,71 @@ public enum CommandPool implements ICommandManager {
         Command textControl = new TextCommandControllerCommand(null);
         Command channel = new ChannelCommand(null);
 
-        addCommand(quit);
-        addCommand(join);
-        addCommand(leaveC);
-        addCommand(shutdown);
-        addCommand(filterToggle);
-        addCommand(help);
-        addCommand(nickChange);
-        addCommand(module);
-        addCommand(textControl);
-        addCommand(channel);
+        ChatFilter testFilter = new TestFilter(null, null);
+
+        registerCommand(quit);
+        registerCommand(join);
+        registerCommand(leaveC);
+        registerCommand(shutdown);
+        registerCommand(filterToggle);
+        registerCommand(help);
+        registerCommand(nickChange);
+        registerCommand(module);
+        registerCommand(textControl);
+        registerCommand(channel);
+
+        registerFilter(testFilter);
+    }
+
+
+    @Override
+    public Optional<Command> getCommand(String name) {
+        return Optional.fromNullable(botCommands.get(botCommandIDs.get(name)));
     }
 
     @Override
-    public Command getCommand(String name) {
+    public Map<String, Command> getCommandsS() {
+        return botCommands.keySet().stream().collect(Collectors.toMap(
+                k -> botCommandIDs.inverse().get(k),
+                v -> botCommands.get(v)
+        ));
+    }
+
+    @Override
+    public Map<Integer, Command> getCommands() {
+        return botCommands;
+    }
+
+    @Override
+    public Optional<ChatFilter> getFilter(String name) {
+        return Optional.fromNullable(botFilters.get(botFilterIDS.get(name)));
+    }
+
+    @Override
+    public Map<String, ChatFilter> getFiltersS() {
+        return botFilters.keySet().stream().collect(Collectors.toMap(
+                k -> botFilterIDS.inverse().get(k),
+                v -> botFilters.get(v)
+        ));
+    }
+
+    @Override
+    public Map<Integer, ChatFilter> getFilters() {
+        return botFilters;
+    }
+
+    @Override
+    public Optional<Module> getModule(String name) {
+        return Optional.fromNullable(moduleManager.getModule(name));
+    }
+
+    @Override
+    public Map<String, Module> getModulesS() {
         return null;
     }
 
     @Override
-    public Map<String, Command> getCommands() {
-        return null;
-    }
-
-    @Override
-    public ChatFilter getFilter(String name) {
-        return null;
-    }
-
-    @Override
-    public List<String> getFilters() {
-        return null;
-    }
-
-    @Override
-    public Module getModule(String name) {
-        return null;
-    }
-
-    @Override
-    public Map<String, Module> getModules() {
+    public Map<Integer, Module> getModules() {
         return null;
     }
 
@@ -109,92 +137,152 @@ public enum CommandPool implements ICommandManager {
     }
 
     @Override
-    public void addCommand(String name, Command command) {
+    public void registerCommand(Command command) throws IllegalArgumentException {
 
     }
 
     @Override
-    public void addCommand(Command command) {
+    public void registerFilter(ChatFilter filter) {
 
     }
 
     @Override
-    public void addFilter(String name, ChatFilter filter) {
-
+    public Optional<Integer> getFilterID(String id) {
+        return null;
     }
 
     @Override
-    public void addFilter(ChatFilter filter) {
-
+    public Optional<Integer> getCommandID(String id) {
+        return null;
     }
 
     @Override
-    public boolean loadModule(String name, String server, String channel) {
+    public Optional<Integer> getModuleID(String id) {
+        return null;
+    }
+
+    @Override
+    public Optional<String> getFilterSID(int id) {
+        return null;
+    }
+
+    @Override
+    public Optional<String> getCommandSID(int id) {
+        return null;
+    }
+
+    @Override
+    public Optional<String> getModuleSID(int id) {
+        return null;
+    }
+
+    @Override
+    public boolean loadModule(String id, String server, String channel) {
         return false;
     }
 
     @Override
-    public void removeCommand(String name) {
-
-    }
-
-    @Override
-    public void removeFilter(String name) {
-
-    }
-
-    @Override
-    public void removeModule(String name, String server, String channel) {
-
-    }
-
-    @Override
-    public Command getModuleCommand(String module, String name) {
+    public Optional<String> getModuleAlias(String id) {
         return null;
     }
 
     @Override
-    public Map<String, Command> getModuleCommands(String module) {
+    public Optional<String> getModuleSID(String alias) {
         return null;
     }
 
     @Override
-    public ChatFilter getModuleFilter(String module, String name) {
+    public void unregisterCommand(String id) {
+
+    }
+
+    @Override
+    public void unregisterFilter(String id) {
+
+    }
+
+    @Override
+    public void unregisterModule(String id, String server, String channel) {
+
+    }
+
+    @Override
+    public void unregisterCommand(int id) {
+
+    }
+
+    @Override
+    public void unregisterFilter(int id) {
+
+    }
+
+    @Override
+    public void unregisterModule(int id, String server, String channel) {
+
+    }
+
+    @Override
+    public Optional<Command> getModuleCommand(String module, String id) {
         return null;
     }
 
     @Override
-    public Map<String, ChatFilter> getModuleFilters(String module) {
+    public Optional<Command> getModuleCommand(String module, int id) {
         return null;
     }
 
     @Override
-    public boolean doesModuleCommandExist(String module, String name) {
+    public Optional<Map<String, Command>> getModuleCommands(String moduleID) {
+        return null;
+    }
+
+    @Override
+    public Optional<ChatFilter> getModuleFilter(String module, String id) {
+        return null;
+    }
+
+    @Override
+    public Optional<ChatFilter> getModuleFilter(String module, int id) {
+        return null;
+    }
+
+    @Override
+    public Optional<Map<String, ChatFilter>> getModuleFilters(String moduleID) {
+        return null;
+    }
+
+    @Override
+    public boolean doesModuleCommandExist(String module, String id) {
         return false;
     }
 
     @Override
-    public boolean doesModuleFilterExist(String module, String name) {
+    public boolean doesModuleFilterExist(String module, String id) {
         return false;
     }
 
     @Override
-    public void addModuleCommand(String module, Command command) {
+    public void registerModuleCommand(String module, Command command) {
 
     }
 
     @Override
-    public void addModuleFilter(String module, ChatFilter filter) {
+    public void registerModuleFilter(String module, ChatFilter filter) {
 
     }
 
     @Override
-    public void removeModuleCommand(String module, String name) {
+    public void unregisterModuleCommand(String module, String name) {
 
     }
 
     @Override
-    public void removeModuleFilter(String module, String name) {
+    public void unregisterModuleFilter(String module, String name) {
+
+    }
+
+    @Override
+    public void refreshModule(String moduleID) {
 
     }
 }
