@@ -3,7 +3,7 @@ package api;
 import java.lang.annotation.*;
 
 /**
- * <p>Used to indicate methods that should be called to load up Commands, Filters, or anything else necessary.</p>
+ * <p>Used to indicate methods that should be called to load up commands, Filters, or anything else necessary.</p>
  *
  * <p>Created by Bret 'Horfius' Dusseault in 2015.
  * All code in this file is open-source and

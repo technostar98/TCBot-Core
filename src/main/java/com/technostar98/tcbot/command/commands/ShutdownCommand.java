@@ -1,11 +1,14 @@
-package com.technostar98.tcbot.command.Commands;
+package com.technostar98.tcbot.command.commands;
 
+import com.technostar98.tcbot.bot.BotManager;
 import api.command.Command;
 import api.command.CommandType;
 import api.lib.WrappedEvent;
-import com.technostar98.tcbot.bot.BotManager;
 import org.pircbotx.PircBotX;
 import org.pircbotx.hooks.events.MessageEvent;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * <p>Created by Bret 'Horfius' Dusseault in 2015.
@@ -16,32 +19,32 @@ import org.pircbotx.hooks.events.MessageEvent;
  *
  * @author Bret 'Horfius' Dusseault
  */
-public class JoinChannelCommand extends Command{
+public class ShutdownCommand extends Command {
 
-    public JoinChannelCommand(String server){
-        super("join", CommandType.JOIN, server);
+    public ShutdownCommand(String server){
+        super("shutdown", CommandType.USER_MESSAGE, server, "shutdown");
     }
 
     @Override
     public String getMessage(WrappedEvent<MessageEvent<PircBotX>> event) {
-        String message = event.getEvent().getMessage();
-        if(message.indexOf(" ") < 0) return null;
-        else{
-            int spaceIndex = message.indexOf(" ");
-            if(spaceIndex == message.length() - 1) return null;
-            else{
-                String partedMessage = message.substring(++spaceIndex);
-                spaceIndex = partedMessage.indexOf(" ");
-                if(spaceIndex == 0) return null;
-                else if(spaceIndex < 0) return partedMessage;
-                else return partedMessage.substring(0, spaceIndex);
-            }
-        }
+        boolean ran = runCommand(event);
+        if(ran) return "Shutting down....";
+        else return null;
     }
 
     @Override
     public boolean runCommand(WrappedEvent<MessageEvent<PircBotX>> event, Object... args) {
-        return true;
+        if(isUserAllowed(event.getEvent())){
+            Timer timer = new Timer("Shutdown");
+            timer.schedule(new TimerTask(){
+                @Override
+                public void run() {
+                    BotManager.stopServer(getServer());
+                }
+            }, 1000L);
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -51,6 +54,6 @@ public class JoinChannelCommand extends Command{
 
     @Override
     public String getHelpMessage() {
-        return "!join target (only certain users can use this)";
+        return "!shutdown (Only certain users can run this)";
     }
 }

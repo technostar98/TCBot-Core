@@ -10,6 +10,6 @@ import java.lang.annotation.Target;
  * @version 1.0
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
+@Target({ElementType.TYPE_USE, ElementType.TYPE_PARAMETER})
 public @interface Cancelable {
 }

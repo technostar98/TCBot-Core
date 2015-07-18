@@ -1,11 +1,11 @@
-package com.technostar98.tcbot.command.Commands;
+package com.technostar98.tcbot.command.commands;
 
 import api.command.Command;
 import api.command.CommandType;
 import api.command.TextCommand;
 import api.lib.WrappedEvent;
 import com.technostar98.tcbot.bot.BotManager;
-import com.technostar98.tcbot.command.CommandManager;
+import com.technostar98.tcbot.command.ChannelManager;
 import org.pircbotx.PircBotX;
 import org.pircbotx.UserLevel;
 import org.pircbotx.hooks.events.MessageEvent;
@@ -26,7 +26,7 @@ import java.util.StringJoiner;
 public class TextCommandControllerCommand extends Command {
 
     public TextCommandControllerCommand(String server){
-        super("command", CommandType.USER_MESSAGE, server, UserLevel.OP, UserLevel.OWNER, UserLevel.VOICE);
+        super("command", CommandType.USER_MESSAGE, server, "command", UserLevel.OP, UserLevel.OWNER, UserLevel.VOICE);
     }
 
     @Override
@@ -36,10 +36,10 @@ public class TextCommandControllerCommand extends Command {
         if(message.length >= 3){
             String action = message[1];
             String target = message[2];
-            CommandManager cm = BotManager.getBotOutputPipe(this.getServer()).getCommandManager(event.getEvent().getChannel().getName());
+            ChannelManager cm = BotManager.getBotOutputPipe(this.getServer()).getChannelManager(event.getEvent().getChannel().getName());
 
             if(action.equals("add")){
-                TextCommand testTC = cm.getTextCommand(target);
+                TextCommand testTC = cm.getTextCommand(target).get();
 
                 if(testTC == null) {
                     List<UserLevel> userLevels = new LinkedList<>();
@@ -121,7 +121,7 @@ public class TextCommandControllerCommand extends Command {
                     return "Command " + target + " already exists.";
                 }
             }else if(action.equals("remove")){
-                TextCommand tc = cm.getTextCommand(target);
+                TextCommand tc = cm.getTextCommand(target).get();
 
                 if(tc == null){
                     return "Command " + target + " does not exist.";
@@ -131,7 +131,7 @@ public class TextCommandControllerCommand extends Command {
                     return "Successfully removed command "+ target;
                 }
             }else if(action.equals("edit")){
-                TextCommand tc = cm.getTextCommand(target);
+                TextCommand tc = cm.getTextCommand(target).get();
                 List<UserLevel> ulList = new LinkedList<>();
                 String commandMessage = tc.getMessage(null);
                 boolean userAllowed = false;

@@ -16,7 +16,13 @@ import java.util.List;
  * @author Bret 'Horfius' Dusseault
  */
 public class Module {
+    /**
+     * A list of command ids
+     */
     private final List<String> commands = new ArrayList<>();
+    /**
+     * A list of filter ids
+     */
     private final List<String> filters = new ArrayList<>();
     private final String name, ID;
     private final int version;
@@ -27,8 +33,8 @@ public class Module {
         this.version = version;
 
         final ICommandManager manager = CommandManager.commandManager.get();
-        manager.getModuleCommands(name).keySet().stream().forEach(c -> commands.add(c));
-        manager.getModuleFilters(name).keySet().stream().forEach(c -> commands.add(c));
+        manager.getModuleCommands(id).get().forEach(c -> commands.add(c.ID));
+        manager.getModuleFilters(id).get().forEach(f -> filters.add(f.ID));
     }
 
     public String getName() {

@@ -1,10 +1,14 @@
 package com.technostar98.tcbot.bot;
 
+import com.google.common.base.Optional;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
 import com.google.common.util.concurrent.Service;
 import com.google.common.util.concurrent.ServiceManager;
+import com.technostar98.tcbot.command.ChannelManager;
 import com.technostar98.tcbot.io.ServerConfigFile;
 import com.technostar98.tcbot.lib.Logger;
 import com.technostar98.tcbot.lib.config.ServerConfiguration;
@@ -29,13 +33,27 @@ import java.util.Map;
  */
 public class BotManager {
     private static ServiceManager manager;
-    private static HashMap<String, IRCBot> bots = new HashMap<>(); //Bots by server
+    private static HashMap<String, IRCBot> bots = new HashMap<>(); //Bots by server name
+    private static BiMap<String, String> addresses = HashBiMap.create(); //name - address
     private static final Object lock = new Object();
     private static boolean debuggerClosed = false;
     private static Thread dataManager = null;
 
     public static void createNewBot(ServerConfiguration config){
-        bots.put(config.getServerAddress(), new IRCBot(BotConfigurationBuilder.buildConfig(config), BotState.RUNNING, config));
+        bots.put(config.getServerName(), new IRCBot(BotConfigurationBuilder.buildConfig(config), BotState.RUNNING, config));
+        addresses.put(config.getServerName(), config.getServerAddress());
+    }
+
+    public static String getAddressForName(String server){
+        return addresses.get(server);
+    }
+
+    public static String getNameForAddress(String address){
+        return addresses.inverse().get(address);
+    }
+
+    public static Optional<ChannelManager> getChannelManager(String server, String channel){
+        return Optional.fromNullable(getBotOutputPipe(server).getChannelManager(channel));
     }
 
     public static IRCBot getBot(String server){
@@ -129,7 +147,7 @@ public class BotManager {
                         //ignore
                     }
 
-                    bots.keySet().forEach(s -> getBotOutputPipe(s).getCommandManagers().forEach(c -> c.saveChannelData()));
+                    bots.keySet().forEach(s -> getBotOutputPipe(s).getChannelManagers().forEach(c -> c.saveChannelData()));
                 }
             });
             dataManager.start();

@@ -1,11 +1,11 @@
-package com.technostar98.tcbot.command.Commands;
+package com.technostar98.tcbot.command.commands;
 
 import api.command.Command;
 import api.command.CommandType;
 import api.command.ICommandManager;
 import api.lib.WrappedEvent;
 import com.technostar98.tcbot.bot.BotManager;
-import com.technostar98.tcbot.command.CommandManager;
+import com.technostar98.tcbot.command.ChannelManager;
 import org.pircbotx.PircBotX;
 import org.pircbotx.UserLevel;
 import org.pircbotx.hooks.events.MessageEvent;
@@ -22,7 +22,7 @@ import org.pircbotx.hooks.events.MessageEvent;
 public class FilterToggleCommand extends Command{
 
     public FilterToggleCommand(String server){
-        super("filter", CommandType.USER_MESSAGE, server, UserLevel.OP, UserLevel.OWNER, UserLevel.VOICE);
+        super("filter", CommandType.USER_MESSAGE, server, "filter", UserLevel.OP, UserLevel.OWNER, UserLevel.VOICE);
     }
 
     @Override
@@ -50,18 +50,18 @@ public class FilterToggleCommand extends Command{
         String action = (String)args[0];
         String target = (String)args[1];
         ICommandManager manager = (ICommandManager)args[2];
-        CommandManager commandManager = BotManager.getBotOutputPipe(getServer()).getCommandManager(event.getEvent().getChannel().getName());
+        ChannelManager channelManager = BotManager.getBotOutputPipe(getServer()).getChannelManager(event.getEvent().getChannel().getName());
 
         if(action.equals("enable")){
-            if(!commandManager.hasFilter(name) && commandManager.isFilterAvailable(target)){
+            if(!channelManager.hasFilter(name) && channelManager.isFilterAvailable(target)){
                 if(manager.getFilter(target) != null) {
-                    commandManager.addFilter(manager.getFilter(target));
+                    channelManager.addFilter(manager.getFilter(target).get());
                     return true;
                 }
             }
         }else if(action.equals("disable")){
-            if(commandManager.hasFilter(target)){
-                commandManager.removeFilter(target);
+            if(channelManager.hasFilter(target)){
+                channelManager.removeFilter(target);
                 return true;
             }
         }

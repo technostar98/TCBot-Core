@@ -4,6 +4,7 @@ import api.filter.ChatFilter;
 import com.google.common.base.Optional;
 import com.technostar98.tcbot.modules.Module;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -208,20 +209,26 @@ public interface ICommandManager {
      */
     public void unregisterFilter(String id);
     public void unregisterModule(String id, String server, String channel);
+    public void registerChannelModule(String id, String server, String channel);
     public void unregisterCommand(int id);
     public void unregisterFilter(int id);
     public void unregisterModule(int id, String server, String channel);
     public Optional<Command> getModuleCommand(String module, String id);
     public Optional<Command> getModuleCommand(String module, int id);
-    public Optional<Map<String, Command>> getModuleCommands(String moduleID);
+    public Optional<List<Command>> getModuleCommands(String moduleID);
     public Optional<ChatFilter> getModuleFilter(String module, String id);
     public Optional<ChatFilter> getModuleFilter(String module, int id);
-    public Optional<Map<String, ChatFilter>> getModuleFilters(String moduleID);
+    public Optional<List<ChatFilter>> getModuleFilters(String moduleID);
     public boolean doesModuleCommandExist(String module, String id);
     public boolean doesModuleFilterExist(String module, String id);
     public void registerModuleCommand(String module, Command command);
     public void registerModuleFilter(String module, ChatFilter filter);
-    public void unregisterModuleCommand(String module, String name);
-    public void unregisterModuleFilter(String module, String name);
+    public void unregisterModuleCommand(String module, String id);
+    public void unregisterModuleFilter(String module, String id);
     public void refreshModule(String moduleID);
+    public boolean doesChannelContainModule(String id);
+    public Optional<List<String>> getChannelModules(String server, String channel);
+    public Optional<Map<String, List<String>>> getChannelsWithModule(String id);
+    public List<Command> getBaseCommands();
+    public List<ChatFilter> getBaseFilters();
 }

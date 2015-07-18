@@ -1,4 +1,4 @@
-package com.technostar98.tcbot.command.Commands;
+package com.technostar98.tcbot.command.commands;
 
 import api.command.Command;
 import api.command.CommandType;
@@ -19,7 +19,7 @@ import org.pircbotx.hooks.events.MessageEvent;
 public class LeaveChannelCommand extends Command{
 
     public LeaveChannelCommand(String server){
-        super("leave", CommandType.LEAVE, server, UserLevel.OP, UserLevel.OP);
+        super("leave", CommandType.LEAVE, server, "leave", UserLevel.OP, UserLevel.OP);
     }
 
     @Override

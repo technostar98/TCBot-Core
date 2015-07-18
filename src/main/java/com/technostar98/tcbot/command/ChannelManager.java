@@ -1,15 +1,18 @@
 package com.technostar98.tcbot.command;
 
 import api.command.Command;
+import api.command.CommandManager;
 import api.command.ICommandManager;
 import api.command.TextCommand;
 import api.filter.ChatFilter;
 import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.technostar98.tcbot.io.ChannelModulesFile;
 import com.technostar98.tcbot.io.ChannelValuesFile;
 import com.technostar98.tcbot.io.CommandsFile;
 import com.technostar98.tcbot.lib.Logger;
+import com.technostar98.tcbot.lib.Value;
 import com.technostar98.tcbot.modules.Module;
 
 import java.io.IOException;
@@ -29,19 +32,25 @@ import java.util.stream.Collectors;
  *
  * @author Bret 'Horfius' Dusseault
  */
-public class CommandManager {
+public class ChannelManager {
     private Map<String, Command> commands = Maps.newHashMap();
     private Map<String, ChatFilter> filters = Maps.newHashMap();
     private Map<String, TextCommand> textCommands = Maps.newHashMap();
-    private Map<String, Object> channelValues = Maps.newHashMap();
+    private Map<String, Value> channelValues = Maps.newHashMap();
     private ArrayList<String> modulesLoaded = new ArrayList<>();
+    private List<String> enabledFilters = Lists.newArrayList();
     public final EventBus eventBus = new CancellableEventBus();
     public final String channel, server;
 
-    public CommandManager(String server, String channel){
+    public ChannelManager(String server, String channel){
         this.channel = channel;
         this.server = server;
         loadChannelData();
+
+        ICommandManager manager = CommandManager.commandManager.get();
+        manager.getBaseCommands().forEach(c -> addCommand(c));
+        manager.getBaseFilters().forEach(f -> addFilter(f));
+
         //TODO load values + configs from database
     }
 
@@ -58,12 +67,24 @@ public class CommandManager {
         return Optional.fromNullable((Command) commands.get(name));
     }
 
+    public List<ChatFilter> getFiltersList(){
+        return this.filters.keySet().stream().map(f -> filters.get(f)).collect(Collectors.toList());
+    }
+
     public Map<String, ChatFilter> getFilters(){
         return filters;
     }
 
     public Optional<ChatFilter> getFilter(String name){
         return Optional.fromNullable(getFilters().get(name));
+    }
+
+    public List<String> getEnabledFilters(){
+        return this.enabledFilters;
+    }
+
+    public boolean isFilterEnabled(String id){
+        return enabledFilters.contains(id);
     }
 
     public List<String> getModules(){
@@ -87,7 +108,7 @@ public class CommandManager {
         return Optional.fromNullable((TextCommand)commands.get(name));
     }
 
-    public Map<String, Object> getChannelValues(){
+    public Map<String, Value> getChannelValues(){
         return this.channelValues;
     }
 
@@ -99,25 +120,33 @@ public class CommandManager {
     public void addFilter(ChatFilter filter){
         filter.setServer(server);
         eventBus.register(filter);
+        enabledFilters.add(filter.ID);
     }
 
-    public void addModule(String name){
-        ICommandManager manager = api.command.CommandManager.commandManager.get();
-        manager.loadModule(name, server, channel);
-        Optional<Module> m = Optional.fromNullable(manager.getModule(name));
+    public void disableFilter(String id){
+        enabledFilters.remove(id);
+    }
 
+    public void disableFilter(ChatFilter filter){
+        enabledFilters.remove(filter.ID);
+    }
+
+    public void addModule(String id){
+        ICommandManager manager = api.command.CommandManager.commandManager.get();
+        Optional<Module> m = manager.getModule(id);
         if(m.isPresent()){
-            modulesLoaded.add(name);
+            manager.registerChannelModule(id, server, channel);
+            modulesLoaded.add(id);
 
             for(String s : m.get().getCommands()){
                 if(getCommand(s).isPresent()){
                     Logger.warning("Tried overwriting command %s in channel %s on server %s.", s, channel, server);
                     continue;
                 }
-                addCommand(manager.getModuleCommand(m.get().getName(), s));
+                addCommand(manager.getModuleCommand(m.get().getID(), s).get());
             }
             for(String s : m.get().getFilters()){
-                addFilter(manager.getModuleFilter(m.get().getName(), s));
+                addFilter(manager.getModuleFilter(m.get().getName(), s).get());
             }
         }
     }
@@ -126,36 +155,43 @@ public class CommandManager {
         textCommands.put(textCommand.name, textCommand);
     }
 
-    public void removeCommand(String name){
-        commands.remove(name);
+    public void removeCommand(String id){
+        commands.remove(id);
     }
 
-    public void removeFilter(String name){
-        eventBus.unregister(getFilter(name));
-        filters.remove(name);
+    public void removeFilter(String id){
+        eventBus.unregister(getFilter(id).get());
+        filters.remove(id);
+        enabledFilters.remove(id);
     }
 
-    public void removeModule(String name){
+    public void removeModule(String id){
         ICommandManager manager = api.command.CommandManager.commandManager.get();
-        Module m = manager.getModule(name);
+        Module m = manager.getModule(id).get();
 
         for(String key : m.getCommands()){
-            commands.remove(manager.getModuleCommand(name, key));
+            commands.remove(manager.getModuleCommand(id, key));
         }
 
         for(String key : m.getFilters()){
-            filters.remove(manager.getModuleFilter(name, key));
+            filters.remove(manager.getModuleFilter(id, key));
         }
 
-        modulesLoaded.remove(name);
-        manager.removeModule(name, server, channel);
+        modulesLoaded.remove(id);
+        manager.unregisterModule(id, server, channel);
+    }
+
+    public void removeRawModule(String id){
+        modulesLoaded.remove(id);
+        ICommandManager manager = api.command.CommandManager.commandManager.get();
+        manager.unregisterModule(id, server, channel);
     }
 
     public void removeTextCommand(String name){
         textCommands.remove(name);
     }
 
-    public void setValue(String key, Object value){
+    public void setValue(String key, Value value){
         this.channelValues.put(key, value);
     }
 
@@ -208,7 +244,7 @@ public class CommandManager {
             modulesFile.readFileContents();
 
             Map<String, TextCommand> commands = commandsFile.getMappedContents();
-            Map<String, Object> values = channelValuesFile.getMappedContents();
+            Map<String, Value> values = channelValuesFile.getMappedContents();
             List<String> modules = modulesFile.getFields();
             this.textCommands = Maps.newHashMap(commands);
             this.channelValues = Maps.newHashMap(values);

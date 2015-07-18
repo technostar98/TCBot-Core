@@ -1,9 +1,11 @@
 package com.technostar98.tcbot.modules;
 
 import api.AssetLoader;
+import com.google.common.collect.Lists;
 import com.technostar98.tcbot.lib.config.Configs;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -32,7 +34,7 @@ public class ModuleLoader {
     public Module loadModule(){
         try{
             File dir = new File(Configs.getStringConfiguration("moduleDir").getValue());
-            File[] modules = dir.listFiles();
+            File[] modules = dir.listFiles((d, n) -> n.endsWith(".jar"));
             boolean moduleExists = false;
             for(File f : modules)
                 if(f.getName().contains(name)) moduleExists = true;
@@ -51,38 +53,26 @@ public class ModuleLoader {
                 JarEntry jarEntry = (JarEntry) e.nextElement();
                 if(jarEntry.isDirectory() || !jarEntry.getName().endsWith(".class")) continue;
 
-                String className = jarEntry.getName().substring(0, jarEntry.getName().length() - 6);
+                String className = jarEntry.getName().substring(0, jarEntry.getName().length() - 6); //.class is 6 characters
                 className = className.replace('/', '.');
                 classes.add(classLoader.loadClass(className));
             }
 
-            for(Class c : classes){
-                Method[] methods = c.getMethods();//All of the methods for this class
-                for(Method m : methods){
-                    Annotation[] methodAnnotations = m.getDeclaredAnnotations();
-                    for(Annotation a : methodAnnotations){
-                        if(a instanceof AssetLoader){//If they are annotated with AssetLoader, they will be run
-                            m.invoke(null);//It is assumed that the methods will be static and require no parameters
-                        }
-                    }
-                }
-            }
-
             Module module = null;
-            api.Module modAnnotation = null;
-            int index = 0;
-            while((modAnnotation == null) && index < classes.size()){
-                Class c = classes.get(index);
-                if(modAnnotation == null) {
-                    Annotation[] annotations = c.getAnnotations();
-                    for (Annotation a : annotations) {
-                        if (a instanceof api.Module) {
-                            modAnnotation = (api.Module) a;
-                            break;
+
+            mLoop: for(Class c : classes){
+                for(Annotation a : c.getDeclaredAnnotations()){
+                    if(a instanceof api.Module){
+                        module = new Module(((api.Module) a).name(), ((api.Module)a).id(), ((api.Module)a).version());
+                        for(Method m : c.getDeclaredMethods()){
+                            boolean toContinue = Lists.newArrayList(m.getDeclaredAnnotations()).stream().anyMatch(a2 -> a2 instanceof AssetLoader);
+                            if(toContinue){
+                                m.invoke(c);
+                            }
                         }
+                        break mLoop;
                     }
                 }
-                index++;
             }
 
             return module;

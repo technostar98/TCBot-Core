@@ -1,4 +1,4 @@
-package com.technostar98.tcbot.command.Commands;
+package com.technostar98.tcbot.command.commands;
 
 import api.command.Command;
 import api.command.CommandType;
@@ -20,7 +20,7 @@ import org.pircbotx.hooks.events.MessageEvent;
 public class ChangeNickCommand extends Command {
 
     public ChangeNickCommand(String server){
-        super("nick", CommandType.GENERIC, server);
+        super("nick", CommandType.GENERIC, server, "nick");
     }
 
     @Override

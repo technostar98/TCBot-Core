@@ -5,12 +5,18 @@ import api.command.ICommandManager;
 import api.command.TextCommand;
 import api.filter.ChatFilter;
 import api.filter.FilterResponse;
+import api.filter.event.BotDisconnectEvent;
+import api.filter.event.ChannelActionEvent;
+import api.filter.event.ChannelPingEvent;
+import api.filter.event.EventContext;
 import api.lib.WrappedEvent;
 import com.google.common.base.Optional;
-import com.technostar98.tcbot.command.CommandManager;
+import com.technostar98.tcbot.command.Cancelable;
+import com.technostar98.tcbot.command.ChannelManager;
 import com.technostar98.tcbot.command.TextCommandParser;
 import com.technostar98.tcbot.lib.Logger;
 import org.pircbotx.PircBotX;
+import org.pircbotx.hooks.Event;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.*;
 import org.pircbotx.hooks.types.*;
@@ -32,7 +38,7 @@ import java.util.stream.Collectors;
  * @author Bret 'Horfius' Dusseault
  */
 public class ListenerPipeline extends ListenerAdapter<PircBotX>{
-    public HashMap<String, CommandManager> commandManagers = new HashMap<>(); //Command managers for channels
+    public HashMap<String, ChannelManager> channelManagers = new HashMap<>(); //Command managers for channels
     public MessengerPipeline messengerPipeline;
     public String server;
     private boolean inputEnabled = true;
@@ -41,39 +47,39 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
 
     public ListenerPipeline(String server, String... channels){
         this.server = server;
-        for(String s : channels) commandManagers.put(s, new CommandManager(server, s)); //TODO load command managers from database
+        for(String s : channels) channelManagers.put(s, new ChannelManager(server, s)); //TODO load command managers from database
         messengerPipeline  = new MessengerPipeline(server, 5);
     }
 
     public ListenerPipeline(String server, List<String> channels){
         this.server = server;
-        channels.stream().forEach(s -> commandManagers.put(s, new CommandManager(server, s)));
+        channels.stream().forEach(s -> channelManagers.put(s, new ChannelManager(server, s)));
         messengerPipeline = new MessengerPipeline(server, 5);
     }
 
-    public CommandManager getCommandManager(String channel){
-        return commandManagers.getOrDefault(channel, null);
+    public ChannelManager getChannelManager(String channel){
+        return channelManagers.getOrDefault(channel, null);
     }
 
-    public List<CommandManager> getCommandManagers(){
-        return commandManagers.keySet().stream().map(s -> getCommandManager(s)).collect(Collectors.toList());
+    public List<ChannelManager> getChannelManagers(){
+        return channelManagers.keySet().stream().map(s -> getChannelManager(s)).collect(Collectors.toList());
     }
 
     public void removeCommandManager(String channel){
-        commandManagers.remove(channel);
+        channelManagers.remove(channel);
     }
 
     public void closeListener(){
         inputEnabled = false;
 
         try {
-            for (String s : commandManagers.keySet()) {
-                CommandManager cm = commandManagers.get(s);
+            for (String s : channelManagers.keySet()) {
+                ChannelManager cm = channelManagers.get(s);
                 cm.saveChannelData();
                 if(cm.getFilters() != null)
-                    cm.getFilters().forEach(f -> f.close());
+                    cm.getFilters().keySet().forEach(f -> cm.getFilter(f).get().close());
                 if(cm.getCommands() != null)
-                    cm.getCommands().forEach(c -> c.close());
+                    cm.getCommands().keySet().forEach(c -> cm.getCommand(c).get().close());
             }
         }catch (Exception e){
             e.printStackTrace();
@@ -83,9 +89,14 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
     @Override
     public void onAction(ActionEvent<PircBotX> event) throws Exception {
         if(!event.getUser().getNick().equals(event.getBot().getNick()) && inputEnabled) {
-            CommandManager cm = getCommandManager(event.getChannel().getName());
-            if (cm.getFilters() != null)
-                cm.getFilters().forEach(f -> f.onUserAction(new WrappedEvent<>(event)));
+            ChannelManager cm = getChannelManager(event.getChannel().getName());
+            if(event.getMessage().contains(event.getBot().getNick())){
+                @Cancelable ChannelPingEvent pEvent =new ChannelPingEvent(new EventContext(event.getBot(), server, event.getChannel(), event.getUser(), event));
+                cm.eventBus.post(pEvent);
+            }else{
+                @Cancelable ChannelActionEvent cEvent = new ChannelActionEvent(new EventContext(event.getBot(), server, event.getChannel(), event.getUser(), event));
+                cm.eventBus.post(cEvent);
+            }
         }
         super.onAction(event);
     }
@@ -97,22 +108,18 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
 
     @Override
     public void onConnect(ConnectEvent<PircBotX> event) throws Exception {
-//        commandManagers.keySet().stream().forEach(cm -> getCommandManager(cm).getFilters().forEach(f -> f.onServerConnect(new WrappedEvent<>(event))));
+//        channelManagers.keySet().stream().forEach(cm -> getCommandManager(cm).getFilters().forEach(f -> f.onServerConnect(new WrappedEvent<>(event))));
         super.onConnect(event);
     }
 
     @Override
     public void onDisconnect(DisconnectEvent<PircBotX> event) throws Exception {
-        commandManagers.keySet().stream().forEach(cm ->{
-            if(getCommandManager(cm) != null){
-                if(getCommandManager(cm).getFilters() != null){
-                    getCommandManager(cm).getFilters().forEach(f -> f.onServerDisconnect(new WrappedEvent<>(event)));
-                }
-            }else{
-                System.out.println("Command manager for " + cm + " is null");
-            }
-        });
-//        commandManagers.entrySet().stream().forEach(e -> removeCommandManager(e.getKey()));
+        for(String c : channelManagers.keySet()){
+            ChannelManager cm = getChannelManager(c);
+            @Cancelable BotDisconnectEvent dEvent = new BotDisconnectEvent(new EventContext(event.getBot(), server, null, null, event));
+            cm.eventBus.post(dEvent);
+        }
+//        channelManagers.entrySet().stream().forEach(e -> removeCommandManager(e.getKey()));
         super.onDisconnect(event);
     }
 
@@ -144,18 +151,13 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
 
     @Override
     public void onJoin(JoinEvent<PircBotX> event) throws Exception {
-        if(event.getUser().getNick().contains(event.getBot().getNick())) {
+        if(event.getUser().getNick().equals(event.getBot().getNick())) {
             Logger.info("Joined channel " + event.getChannel().getName());
-            CommandManager cm = new CommandManager(server, event.getChannel().getName());
+            ChannelManager cm = new ChannelManager(server, event.getChannel().getName());
             ICommandManager manager = api.command.CommandManager.commandManager.get();
 
             //TODO module command/filter loading
-            Optional<List<Command>> commands = Optional.fromNullable(manager.getCommands());
-            if(commands.isPresent()) {
-                commands.get().forEach(c -> cm.addCommand(c));
-                if (cm.getCommands() != null)
-                    cm.getCommands().stream().forEach(c -> c.setServer(server));
-            }
+
 
             Optional<List<ChatFilter>> filters = Optional.fromNullable(manager.getFilters());
             if(filters.isPresent()) {
@@ -164,9 +166,9 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
                     cm.getFilters().stream().forEach(f -> f.setServer(server));
             }
 
-            commandManagers.put(event.getChannel().getName(), cm);
+            channelManagers.put(event.getChannel().getName(), cm);
         }else if(inputEnabled){
-            CommandManager cm = commandManagers.get(event.getChannel().getName());
+            ChannelManager cm = channelManagers.get(event.getChannel().getName());
             if(cm != null && cm.getFilters() != null)
                 cm.getFilters().stream().forEach(f -> f.onUserJoin(new WrappedEvent<>(event)));
         }
@@ -177,18 +179,18 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
     @Override
     public void onKick(KickEvent<PircBotX> event) throws Exception {
         if(event.getRecipient().getNick().equals(event.getBot().getNick())) {
-            commandManagers.keySet().stream().forEach(cm -> {
-                CommandManager commandManager = getCommandManager(cm);
-                if (commandManager != null) {
-                    if (commandManager.getFilters() != null) {
-                        commandManager.getFilters().forEach(f -> f.onKicked(new WrappedEvent<>(event)));
+            channelManagers.keySet().stream().forEach(cm -> {
+                ChannelManager channelManager = getCommandManager(cm);
+                if (channelManager != null) {
+                    if (channelManager.getFilters() != null) {
+                        channelManager.getFilters().forEach(f -> f.onKicked(new WrappedEvent<>(event)));
                     }
                 } else {
                     System.out.println("Command manager for " + cm + " is null");
                 }
             });
         }else{
-            CommandManager cm = getCommandManager(event.getChannel().getName());
+            ChannelManager cm = getCommandManager(event.getChannel().getName());
             if(cm.getFilters() != null)
                 cm.getFilters().forEach(f -> f.onUserKick(new WrappedEvent<>(event)));
         }
@@ -198,7 +200,7 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
     @Override
     public void onMessage(MessageEvent<PircBotX> event) throws Exception {
         if(inputEnabled) {
-            CommandManager cm = getCommandManager(event.getChannel().getName());
+            ChannelManager cm = getCommandManager(event.getChannel().getName());
 
             try {
                 messaged:
@@ -315,7 +317,7 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
     @Override
     public void onQuit(QuitEvent<PircBotX> event) throws Exception {
         if(event.getUser().getNick().equals(event.getBot().getNick())){
-            commandManagers.keySet().parallelStream().forEach(cm -> {
+            channelManagers.keySet().parallelStream().forEach(cm -> {
                 if(getCommandManager(cm).getFilters() != null)
                     getCommandManager(cm).getFilters().forEach(f -> f.onQuit(new WrappedEvent<>(event)));
             });
@@ -425,7 +427,7 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
 
     @Override
     public void onSocketConnect(SocketConnectEvent<PircBotX> event) throws Exception {
-//        commandManagers.entrySet().stream().forEach(e -> e.getValue().getFilters().forEach(f -> f.onSocketConnect(new WrappedEvent<>(event))));
+//        channelManagers.entrySet().stream().forEach(e -> e.getValue().getFilters().forEach(f -> f.onSocketConnect(new WrappedEvent<>(event))));
         super.onSocketConnect(event);
     }
 

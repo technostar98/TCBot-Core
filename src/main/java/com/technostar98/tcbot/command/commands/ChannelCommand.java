@@ -1,4 +1,4 @@
-package com.technostar98.tcbot.command.Commands;
+package com.technostar98.tcbot.command.commands;
 
 import api.command.Command;
 import api.command.CommandType;
@@ -20,7 +20,7 @@ import org.pircbotx.hooks.events.MessageEvent;
 public class ChannelCommand extends Command {
 
     public ChannelCommand(String server){
-        super("channel", CommandType.USER_MESSAGE, server, UserLevel.OP, UserLevel.OWNER);
+        super("channel", CommandType.USER_MESSAGE, server, "channel", UserLevel.OP, UserLevel.OWNER);
     }
 
     @Override

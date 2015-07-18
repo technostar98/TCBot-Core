@@ -1,7 +1,5 @@
-package com.technostar98.tcbot.command.Commands;
+package com.technostar98.tcbot.command.commands;
 
-import com.technostar98.tcbot.bot.BotManager;
-import com.technostar98.tcbot.bot.BotState;
 import api.command.Command;
 import api.command.CommandType;
 import api.lib.WrappedEvent;
@@ -18,31 +16,25 @@ import org.pircbotx.hooks.events.MessageEvent;
  *
  * @author Bret 'Horfius' Dusseault
  */
-public class BotQuitCommand extends Command {
+public class ChangeServerCommand extends Command {
 
-    public BotQuitCommand(String server){
-        super("quit", CommandType.LEAVE, server, UserLevel.OP, UserLevel.OWNER);
+    public ChangeServerCommand(String server) {
+        super("server", CommandType.GENERIC, server, "server", UserLevel.OP);
+        //TODO Change server command
     }
 
     @Override
     public String getMessage(WrappedEvent<MessageEvent<PircBotX>> event) {
-        runCommand(event);
         return null;
     }
 
     @Override
     public boolean runCommand(WrappedEvent<MessageEvent<PircBotX>> event, Object... args) {
-        boolean allowed = isUserAllowed(event.getEvent());
-        if(allowed){
-            event.getEvent().getBot().sendIRC().quitServer("Cya later, alligators!");
-            BotManager.getBot(getServer()).setState(BotState.STOPPED);
-        }
-
-        return allowed;
+        return true;
     }
 
     @Override
     public String getHelpMessage() {
-        return "!quit (WIP)";
+        return "!server newServer (WIP)";
     }
 }

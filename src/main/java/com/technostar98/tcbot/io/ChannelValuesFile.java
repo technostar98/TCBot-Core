@@ -2,9 +2,13 @@ package com.technostar98.tcbot.io;
 
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.technostar98.tcbot.io.JSONadapters.ValueDeserializer;
+import com.technostar98.tcbot.io.JSONadapters.ValueSerializer;
 import com.technostar98.tcbot.lib.IJsonFileIO;
+import com.technostar98.tcbot.lib.Value;
 import com.technostar98.tcbot.lib.config.Configs;
 
 import java.io.*;
@@ -22,9 +26,9 @@ import java.util.Map;
  *
  * @author Bret 'Horfius' Dusseault
  */
-public class ChannelValuesFile implements IJsonFileIO<Object> {
+public class ChannelValuesFile implements IJsonFileIO<Value> {
     File file = null;
-    Map<String, Object> contents = new HashMap<>();
+    Map<String, Value> contents = new HashMap<>();
 
     public ChannelValuesFile(String server, String channel){
         File dir = new File(Configs.getStringConfiguration("configDir").getValue() + server + File.separatorChar + channel + File.separatorChar);
@@ -55,7 +59,7 @@ public class ChannelValuesFile implements IJsonFileIO<Object> {
     }
 
     @Override
-    public Map<String, Object> getMappedContents() {
+    public Map<String, Value> getMappedContents() {
         return contents;
     }
 
@@ -70,12 +74,12 @@ public class ChannelValuesFile implements IJsonFileIO<Object> {
     }
 
     @Override
-    public void setContents(Map<String, Object> contents) {
+    public void setContents(Map<String, Value> contents) {
         this.contents = contents;
     }
 
     @Override
-    public void addField(String key, Object value) {
+    public void addField(String key, Value value) {
         contents.put(key, value);
     }
 
@@ -87,8 +91,7 @@ public class ChannelValuesFile implements IJsonFileIO<Object> {
         for (String s : contents.keySet()) {
             JsonObject object = new JsonObject();
             object.addProperty("name", gson.toJson(s));
-            object.addProperty("type", gson.toJson(contents.get(s).getClass().getName()));
-            object.addProperty("value", gson.toJson(contents.get(s)));
+            object.addProperty("obj", gson.toJson(contents.get(s)));
 
             array.add(object);
         }
@@ -107,30 +110,36 @@ public class ChannelValuesFile implements IJsonFileIO<Object> {
     public void readFileContents() throws IOException {
         Gson gson = buildGson();
 
-        try{
-            FileInputStream inputStream = new FileInputStream(file);
-            InputStreamReader isr = new InputStreamReader(inputStream);
-            BufferedReader reader = new BufferedReader(isr);
+        FileInputStream inputStream = new FileInputStream(file);
+        InputStreamReader isr = new InputStreamReader(inputStream);
+        BufferedReader reader = new BufferedReader(isr);
 
-            HashMap<String, Object> tempMap = new HashMap<>();
-            JsonObject[] objects = gson.fromJson(reader, JsonObject[].class);
-            if(objects != null){
-                for(JsonObject o : objects){
-                    String name = gson.fromJson(o.get("name"), String.class);
-                    Class type = Class.forName(gson.fromJson("type", String.class));
-                    Object value = gson.fromJson(o.get("value"), type);
-                    tempMap.put(name, value);
-                }
-
-                setContents(tempMap);
+        HashMap<String, Value> tempMap = new HashMap<>();
+        JsonObject[] objects = gson.fromJson(reader, JsonObject[].class);
+        if(objects != null){
+            for(JsonObject o : objects){
+                String name = gson.fromJson(o.get("name"), String.class);
+                Value v = gson.fromJson(o.get("obj"), Value.class);
+                tempMap.put(name, v);
             }
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+
+            setContents(tempMap);
         }
     }
 
     @Override
     public boolean isInitialized() {
         return file != null && file.exists();
+    }
+
+    @Override
+    public Gson buildGson() {
+        return new GsonBuilder()
+                .registerTypeAdapter(Value.class, new ValueSerializer())
+                .registerTypeAdapter(Value.class, new ValueDeserializer())
+                .disableHtmlEscaping()
+                .serializeNulls()
+                .setPrettyPrinting()
+                .create();
     }
 }

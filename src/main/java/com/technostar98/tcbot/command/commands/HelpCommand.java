@@ -1,4 +1,4 @@
-package com.technostar98.tcbot.command.Commands;
+package com.technostar98.tcbot.command.commands;
 
 import api.command.Command;
 import api.command.CommandType;
@@ -6,7 +6,7 @@ import api.command.TextCommand;
 import api.filter.ChatFilter;
 import api.lib.WrappedEvent;
 import com.technostar98.tcbot.bot.BotManager;
-import com.technostar98.tcbot.command.CommandManager;
+import com.technostar98.tcbot.command.ChannelManager;
 import org.pircbotx.PircBotX;
 import org.pircbotx.hooks.events.MessageEvent;
 
@@ -24,7 +24,7 @@ import java.util.StringJoiner;
 public class HelpCommand extends Command{
 
     public HelpCommand(String server){
-        super("help", CommandType.USER_MESSAGE, server);
+        super("help", CommandType.USER_MESSAGE, server, "help");
     }
 
     @Override
@@ -32,32 +32,30 @@ public class HelpCommand extends Command{
         String[] words = event.getEvent().getMessage().split(" ");
 
         if(words.length >= 2) {
-            CommandManager cm = BotManager.getBotOutputPipe(this.getServer()).getCommandManager(event.getEvent().getChannel().getName());
+            ChannelManager cm = BotManager.getBotOutputPipe(this.getServer()).getChannelManager(event.getEvent().getChannel().getName());
             if(words[1].equals("allCommands") || words[1].equals("allFilters")) {
                 if(words[1].equals("allCommands")){
                     StringJoiner j = new StringJoiner(", ", "{", "}");
-                    for(Command c : cm.getCommands()) j.add(c.getName());
-                    for(TextCommand c : cm.getTextCommands()) j.add(c.getName());
+                    cm.getCommandsList().forEach(c -> j.add(c.getName()));
+                    cm.getTextCommandsList().forEach(t -> j.add(t.getName()));
 
                     return "Commands for this channel are: " + j.toString();
                 }else if(words[1].equals("allFilters")){
-                    StringJoiner j1 = new StringJoiner(", ", "{", "}");
-                    StringJoiner j2 = new StringJoiner(", ", "{", "}");
+                    StringJoiner j1 = new StringJoiner(", ", "{", "}");//Enabled
+                    StringJoiner j2 = new StringJoiner(", ", "{", "}");//Available
                     if(cm.getFilters() != null)
-                        for(ChatFilter f : cm.getFilters()) j1.add(f.getName());
+                        cm.getEnabledFilters().forEach(f -> j1.add(cm.getFilter(f).get().ID + "|" + cm.getFilter(f).get().name));
                     if(api.command.CommandManager.commandManager.get().getFilters() != null)
-                        for(ChatFilter f : api.command.CommandManager.commandManager.get().getFilters()) j2.add(f.getName());
-                    if(cm.getModules() != null)
-                        for(String module : cm.getModules()) api.command.CommandManager.commandManager.get().getModuleFilters(module).forEach(f -> j2.add(f.getName()));
+                        cm.getFiltersList().stream().filter(f -> !cm.getEnabledFilters().contains(f.ID)).forEach(f -> j2.add(f.ID + "|" + f.name));
 
-                    return "Filters enabled in this channel are: " + j1.toString() +
+                    return "Filters(by ID|NAME) enabled in this channel are: " + j1.toString() +
                             "; Filters available are: " + j2.toString();
                 }
             }else if(words[1].equals("feature")){
                 return "The 'feature' part of !help is WIP. Thank you for you patience.";
             }else if(words[1].equals("command")){
                 if(words.length >= 3)
-                    return cm.getCommand(words[2]) != null ? cm.getCommand(words[2]).getHelpMessage() : "Command does not exist in this channel.";
+                    return cm.getCommand(words[2]) != null ? cm.getCommand(words[2]).get().getHelpMessage() : "Command does not exist in this channel.";
                 else
                     return "Specify a command.";
             }

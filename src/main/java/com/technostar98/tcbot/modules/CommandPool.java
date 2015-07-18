@@ -8,7 +8,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Table;
 import com.google.common.collect.TreeBasedTable;
-import com.technostar98.tcbot.command.Commands.*;
+import com.technostar98.tcbot.command.commands.*;
 import com.technostar98.tcbot.command.Filters.TestFilter;
 
 import java.util.List;
@@ -232,7 +232,7 @@ public enum CommandPool implements ICommandManager {
     }
 
     @Override
-    public Optional<Map<String, Command>> getModuleCommands(String moduleID) {
+    public Optional<List<Command>> getModuleCommands(String moduleID) {
         return null;
     }
 
@@ -247,7 +247,7 @@ public enum CommandPool implements ICommandManager {
     }
 
     @Override
-    public Optional<Map<String, ChatFilter>> getModuleFilters(String moduleID) {
+    public Optional<List<ChatFilter>> getModuleFilters(String moduleID) {
         return null;
     }
 
@@ -285,4 +285,20 @@ public enum CommandPool implements ICommandManager {
     public void refreshModule(String moduleID) {
 
     }
+
+    @Override
+    public boolean doesChannelContainModule(String id) {
+        return false;
+    }
+
+    @Override
+    public Optional<List<String>> getChannelModules(String server, String channel) {
+        return null;
+    }
+
+    @Override
+    public Optional<Map<String, List<String>>> getChannelsWithModule(String id) {
+        return null;
+    }
+
 }

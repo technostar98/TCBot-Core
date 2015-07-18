@@ -47,4 +47,6 @@ public abstract class ChatFilter{
     public void setChannel(String channel) {
         this.channel = channel;
     }
+
+    public abstract void close();
 }
