@@ -3,7 +3,6 @@ package api.filter.event;
 import org.pircbotx.Channel;
 import org.pircbotx.PircBotX;
 import org.pircbotx.User;
-import org.pircbotx.hooks.*;
 import org.pircbotx.hooks.Event;
 
 /**

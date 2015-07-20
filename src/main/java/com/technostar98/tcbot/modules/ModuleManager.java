@@ -1,33 +1,21 @@
 package com.technostar98.tcbot.modules;
 
-import api.command.Command;
 import api.command.CommandManager;
-import api.command.ICommandManager;
+import api.command.ICommandFilterRegistry;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
-import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.io.Files;
 import com.technostar98.tcbot.bot.BotManager;
 import com.technostar98.tcbot.command.ChannelManager;
 import com.technostar98.tcbot.lib.Logger;
-import com.technostar98.tcbot.lib.config.Configs;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 /**
  * <p>Created by Bret 'Horfius' Dusseault in 2015.
@@ -44,7 +32,7 @@ public class ModuleManager {
             .weakValues() //Garbage collect modules no longer referenced anywhere
             .removalListener(i -> { //To make sure all references to the module are removed if forcefully removed
                 Logger.warning("Unloading module ...");
-                ICommandManager manager = CommandManager.commandManager.get();
+                ICommandFilterRegistry manager = CommandManager.commandManager.get();
                 Preconditions.checkNotNull(manager);
 
                 Module m = (Module) i.getValue();
@@ -65,6 +53,9 @@ public class ModuleManager {
                                 });
                             }
                     );
+
+                    commandIDs.forEach(s -> manager.unregisterModuleCommand(m.getID(), s));
+                    filterIDs.forEach(s -> manager.unregisterModuleFilter(m.getID(), s));
                     Logger.info("Removed module %s from all channels in all servers.", m.getName());
                 } else {
                     Logger.info("Module %s was not in any channels, fully removed.", m.getName());
@@ -73,20 +64,26 @@ public class ModuleManager {
             .build(new CacheLoader<String, Module>() {
                 @Override
                 public Module load(String key) throws Exception {
-                    return new ModuleLoader(key).loadModule();
+                    Module m = new ModuleLoader(key).loadModule();
+                    idsToNames.put(m.getID(), key);
+                    return m;
                 }
             });
     protected BiMap<String, String> idsToNames = HashBiMap.create();
 
     /**
      * Retrieve a module, will load if it is not loaded already.
-     * @param id
+     * @param id The name of the file most likely, but so long as it includes the name in there, it should be fine
      * @return
      */
     public Optional<Module> getModule(String id) {
         Optional<Module> module = Optional.absent();
         try {
-            module = Optional.fromNullable(modules.get(id));
+            if(idsToNames.containsKey(id)){
+                module = Optional.fromNullable(modules.get(idsToNames.get(id)));
+            }else {
+                module = Optional.fromNullable(modules.get(id));
+            }
         } catch (Exception e) {
             Logger.error("Could not load up module from " + id, e);
         }
@@ -99,12 +96,25 @@ public class ModuleManager {
     }
 
     public void refreshModule(String id){
-        modules.invalidate(id);
+        if(idsToNames.containsKey(id))
+            modules.invalidate(idsToNames.get(id));
+        else
+            modules.invalidate(id);
         modules.cleanUp();
+        System.gc();//Should remove the module from memory and make room for the new one.
         try {
             modules.get(id);
         } catch (ExecutionException e) {
             e.printStackTrace();
         }
+    }
+
+    public void removeModule(String id){
+        if(idsToNames.containsKey(id))
+            modules.invalidate(idsToNames.get(id));
+        else
+            modules.invalidate(id);
+        modules.cleanUp();
+        System.gc();//Should remove the module from memory and make room for the new one.
     }
 }

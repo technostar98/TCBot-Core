@@ -2,8 +2,6 @@ package com.technostar98.tcbot.command.commands;
 
 import api.command.Command;
 import api.command.CommandType;
-import api.command.TextCommand;
-import api.filter.ChatFilter;
 import api.lib.WrappedEvent;
 import com.technostar98.tcbot.bot.BotManager;
 import com.technostar98.tcbot.command.ChannelManager;
@@ -43,8 +41,11 @@ public class HelpCommand extends Command{
                 }else if(words[1].equals("allFilters")){
                     StringJoiner j1 = new StringJoiner(", ", "{", "}");//Enabled
                     StringJoiner j2 = new StringJoiner(", ", "{", "}");//Available
-                    if(cm.getFilters() != null)
-                        cm.getEnabledFilters().forEach(f -> j1.add(cm.getFilter(f).get().ID + "|" + cm.getFilter(f).get().name));
+                    if(cm.getEnabledFilters() != null)
+                        cm.getEnabledFilters().forEach(f -> {
+                            System.out.println(f);
+                            j1.add(cm.getFilter(f).get().ID + "|" + cm.getFilter(f).get().name);
+                        });
                     if(api.command.CommandManager.commandManager.get().getFilters() != null)
                         cm.getFiltersList().stream().filter(f -> !cm.getEnabledFilters().contains(f.ID)).forEach(f -> j2.add(f.ID + "|" + f.name));
 

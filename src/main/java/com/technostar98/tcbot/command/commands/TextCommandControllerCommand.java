@@ -4,6 +4,7 @@ import api.command.Command;
 import api.command.CommandType;
 import api.command.TextCommand;
 import api.lib.WrappedEvent;
+import com.google.common.base.Optional;
 import com.technostar98.tcbot.bot.BotManager;
 import com.technostar98.tcbot.command.ChannelManager;
 import org.pircbotx.PircBotX;
@@ -39,9 +40,9 @@ public class TextCommandControllerCommand extends Command {
             ChannelManager cm = BotManager.getBotOutputPipe(this.getServer()).getChannelManager(event.getEvent().getChannel().getName());
 
             if(action.equals("add")){
-                TextCommand testTC = cm.getTextCommand(target).get();
+                Optional<TextCommand> testTC = cm.getTextCommand(target);
 
-                if(testTC == null) {
+                if(testTC.isPresent()) {
                     List<UserLevel> userLevels = new LinkedList<>();
                     String commandMessage;
                     boolean userAllowed = false;

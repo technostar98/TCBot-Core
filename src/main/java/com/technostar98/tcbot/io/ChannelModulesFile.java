@@ -10,7 +10,6 @@ import com.technostar98.tcbot.lib.config.Configs;
 
 import java.io.*;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

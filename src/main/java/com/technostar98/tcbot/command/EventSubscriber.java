@@ -44,7 +44,7 @@ public class EventSubscriber {
     public void handleEvent(Object event) throws InvocationTargetException {
         checkNotNull(event);
         try {
-            method.invoke(target, new Object[] { event });
+            method.invoke(target, event);
         } catch (IllegalArgumentException e) {
             throw new Error("Method rejected target/argument: " + event, e);
         } catch (IllegalAccessException e) {

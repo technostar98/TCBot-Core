@@ -2,7 +2,7 @@ package com.technostar98.tcbot.command.commands;
 
 import api.command.Command;
 import api.command.CommandType;
-import api.command.ICommandManager;
+import api.command.ICommandFilterRegistry;
 import api.lib.WrappedEvent;
 import com.technostar98.tcbot.bot.BotManager;
 import com.technostar98.tcbot.command.ChannelManager;
@@ -28,7 +28,7 @@ public class FilterToggleCommand extends Command{
     @Override
     public String getMessage(WrappedEvent<MessageEvent<PircBotX>> event) {
         String[] words = event.getEvent().getMessage().split(" ");
-        ICommandManager manager = api.command.CommandManager.commandManager.get();
+        ICommandFilterRegistry manager = api.command.CommandManager.commandManager.get();
 
         if(words.length == 1)
             return "Please specify the action ('enable' or 'disable') and target filter";
@@ -49,7 +49,7 @@ public class FilterToggleCommand extends Command{
     public boolean runCommand(WrappedEvent<MessageEvent<PircBotX>> event, Object... args) {
         String action = (String)args[0];
         String target = (String)args[1];
-        ICommandManager manager = (ICommandManager)args[2];
+        ICommandFilterRegistry manager = (ICommandFilterRegistry)args[2];
         ChannelManager channelManager = BotManager.getBotOutputPipe(getServer()).getChannelManager(event.getEvent().getChannel().getName());
 
         if(action.equals("enable")){

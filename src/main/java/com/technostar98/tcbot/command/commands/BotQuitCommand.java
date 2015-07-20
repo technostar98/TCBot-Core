@@ -1,10 +1,10 @@
 package com.technostar98.tcbot.command.commands;
 
-import com.technostar98.tcbot.bot.BotManager;
-import com.technostar98.tcbot.bot.BotState;
 import api.command.Command;
 import api.command.CommandType;
 import api.lib.WrappedEvent;
+import com.technostar98.tcbot.bot.BotManager;
+import com.technostar98.tcbot.bot.BotState;
 import org.pircbotx.PircBotX;
 import org.pircbotx.UserLevel;
 import org.pircbotx.hooks.events.MessageEvent;

@@ -1,7 +1,7 @@
 package com.technostar98.tcbot;
 
 import api.command.CommandManager;
-import api.command.ICommandManager;
+import api.command.ICommandFilterRegistry;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.technostar98.tcbot.bot.BotManager;
@@ -63,7 +63,7 @@ public class Launcher {
             }
 
             //Load up the api from the internal version
-            CommandManager.commandManager = Optional.of((ICommandManager) CommandPool.INSTANCE);
+            CommandManager.commandManager = Optional.of((ICommandFilterRegistry) CommandPool.INSTANCE);
 
             ServerConfigFile serverConfigFile = new ServerConfigFile();
             serverConfigFile.readFileContents();
@@ -74,7 +74,7 @@ public class Launcher {
                 }
             }else{
                 //Backup/Default server configuration file
-                ServerConfiguration esper = new ServerConfiguration("Espernet", "irc.esper.net", "TCBot", "TEMP", Lists.newArrayList("Horfius"), "#TechnoDev");
+                ServerConfiguration esper = new ServerConfiguration("Technostarhosting", "irc.technostarhosting.com", "TCBot", "TEMP", Lists.newArrayList("Horfius"), "#TCBot");
                 serverConfigFile.addField(esper.getServerName(), esper);
                 serverConfigFile.saveFileContents();
 

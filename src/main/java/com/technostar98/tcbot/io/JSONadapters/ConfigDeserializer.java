@@ -1,7 +1,7 @@
 package com.technostar98.tcbot.io.JSONadapters;
 
-import com.google.gson.*;
 import api.lib.Configuration;
+import com.google.gson.*;
 
 import java.lang.reflect.Type;
 

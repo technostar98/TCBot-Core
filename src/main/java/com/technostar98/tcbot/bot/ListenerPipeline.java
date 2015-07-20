@@ -1,14 +1,10 @@
 package com.technostar98.tcbot.bot;
 
 import api.command.Command;
-import api.command.ICommandManager;
+import api.command.ICommandFilterRegistry;
 import api.command.TextCommand;
 import api.filter.ChatFilter;
-import api.filter.FilterResponse;
-import api.filter.event.BotDisconnectEvent;
-import api.filter.event.ChannelActionEvent;
-import api.filter.event.ChannelPingEvent;
-import api.filter.event.EventContext;
+import api.filter.event.*;
 import api.lib.WrappedEvent;
 import com.google.common.base.Optional;
 import com.technostar98.tcbot.command.Cancelable;
@@ -16,7 +12,6 @@ import com.technostar98.tcbot.command.ChannelManager;
 import com.technostar98.tcbot.command.TextCommandParser;
 import com.technostar98.tcbot.lib.Logger;
 import org.pircbotx.PircBotX;
-import org.pircbotx.hooks.Event;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.*;
 import org.pircbotx.hooks.types.*;
@@ -154,23 +149,13 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
         if(event.getUser().getNick().equals(event.getBot().getNick())) {
             Logger.info("Joined channel " + event.getChannel().getName());
             ChannelManager cm = new ChannelManager(server, event.getChannel().getName());
-            ICommandManager manager = api.command.CommandManager.commandManager.get();
-
-            //TODO module command/filter loading
-
-
-            Optional<List<ChatFilter>> filters = Optional.fromNullable(manager.getFilters());
-            if(filters.isPresent()) {
-                filters.get().forEach(f -> cm.addFilter(f));
-                if (cm.getFilters() != null)
-                    cm.getFilters().stream().forEach(f -> f.setServer(server));
-            }
+            ICommandFilterRegistry manager = api.command.CommandManager.commandManager.get();
 
             channelManagers.put(event.getChannel().getName(), cm);
         }else if(inputEnabled){
             ChannelManager cm = channelManagers.get(event.getChannel().getName());
-            if(cm != null && cm.getFilters() != null)
-                cm.getFilters().stream().forEach(f -> f.onUserJoin(new WrappedEvent<>(event)));
+            @Cancelable UserJoinEvent jEvent = new UserJoinEvent(new EventContext(event.getBot(), server, event.getChannel(), event.getUser(), event));
+            cm.eventBus.post(jEvent);
         }
 
         super.onJoin(event);
@@ -179,20 +164,13 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
     @Override
     public void onKick(KickEvent<PircBotX> event) throws Exception {
         if(event.getRecipient().getNick().equals(event.getBot().getNick())) {
-            channelManagers.keySet().stream().forEach(cm -> {
-                ChannelManager channelManager = getCommandManager(cm);
-                if (channelManager != null) {
-                    if (channelManager.getFilters() != null) {
-                        channelManager.getFilters().forEach(f -> f.onKicked(new WrappedEvent<>(event)));
-                    }
-                } else {
-                    System.out.println("Command manager for " + cm + " is null");
-                }
-            });
+            ChannelManager cm = getChannelManager(event.getChannel().getName());
+            @Cancelable BotKickedEvent kEvent = new BotKickedEvent(new EventContext(event.getBot(), server, event.getChannel(), event.getUser(), event));
+            cm.eventBus.post(kEvent);
         }else{
-            ChannelManager cm = getCommandManager(event.getChannel().getName());
-            if(cm.getFilters() != null)
-                cm.getFilters().forEach(f -> f.onUserKick(new WrappedEvent<>(event)));
+            ChannelManager cm = getChannelManager(event.getChannel().getName());
+            @Cancelable UserKickedEvent kEvent = new UserKickedEvent(new EventContext(event.getBot(), server, event.getChannel(), event.getUser(), event));
+            cm.eventBus.post(kEvent);
         }
         super.onKick(event);
     }
@@ -200,56 +178,31 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
     @Override
     public void onMessage(MessageEvent<PircBotX> event) throws Exception {
         if(inputEnabled) {
-            ChannelManager cm = getCommandManager(event.getChannel().getName());
+            ChannelManager cm = getChannelManager(event.getChannel().getName());
 
             try {
-                messaged:
-                if (cm != null) {
-                    if (cm.getFilters() != null) {
-                        if (event.getMessage().contains(event.getBot().getNick())) {
-                            FilterResponse filterResponse;
-                            List<ChatFilter> filters = cm.getFilters();
-                            Collections.sort(filters);
-                            WrappedEvent<MessageEvent<PircBotX>> wrapped = new WrappedEvent<>(event);
+                if(event.getMessage().contains(event.getBot().getNick())){
+                    @Cancelable ChannelPingEvent cEvent = new ChannelPingEvent(new EventContext(event.getBot(), server, event.getChannel(), event.getUser(), event));
+                    cm.eventBus.post(cEvent);
+                }else {
+                    @Cancelable ChannelMessageEvent cEvent = new ChannelMessageEvent(new EventContext(event.getBot(), server, event.getChannel(), event.getUser(), event));
+                    cm.eventBus.post(cEvent);
+                }
+                if (event.getMessage().startsWith("!")) {
+                    int endCommandIndex = event.getMessage().contains(" ") ? event.getMessage().indexOf(" ") : event.getMessage().length();
+                    String commandName = event.getMessage().substring(1, endCommandIndex);
+                    Optional<Command> cO = cm.getCommand(commandName);
+                    Optional<TextCommand> tcO = cm.getTextCommand(commandName);
+                    WrappedEvent<MessageEvent<PircBotX>> wrappedEvent = new WrappedEvent<>(event);
 
-                            int index = 0;
-                            while (index < filters.size()) {
-                                filterResponse = filters.get(0).onNickPinged(wrapped);
-                                if (filterResponse == FilterResponse.BREAK_FILTERS) break;
-                                else if (filterResponse == FilterResponse.BREAK) break messaged;
-                                index++;
-                            }
-                        } else {
-                            FilterResponse filterResponse;
-                            List<ChatFilter> filters = cm.getFilters();
-                            Collections.sort(filters);
-                            WrappedEvent<MessageEvent<PircBotX>> wrapped = new WrappedEvent<>(event);
-
-                            int index = 0;
-                            while (index < filters.size()) {
-                                filterResponse = filters.get(0).onUserMessage(wrapped);
-                                if (filterResponse == FilterResponse.BREAK_FILTERS) break;
-                                else if (filterResponse == FilterResponse.BREAK) break messaged;
-                                index++;
-                            }
-                        }
-                    }
-                    if (event.getMessage().startsWith("!")) {
-                        int endCommandIndex = event.getMessage().contains(" ") ? event.getMessage().indexOf(" ") : event.getMessage().length();
-                        String commandName = event.getMessage().substring(1, endCommandIndex);
-                        Command c = cm.getCommand(commandName);
-                        TextCommand tc = cm.getTextCommand(commandName);
-                        WrappedEvent<MessageEvent<PircBotX>> wrappedEvent = new WrappedEvent<>(event);
-
-                        if (c != null && c.isUserAllowed(event)) {
+                    if (cO.isPresent() && cO.get().isUserAllowed(event)) {
 //                            System.out.println("MessengerPipe is null: " + (this.messengerPipeline == null));
 //                            System.out.println("c.message is null: " + (c.getMessage(wrappedEvent) == null));
 //                            System.out.println("Wrapped message is null: " + (wrappedEvent == null));
-                            this.messengerPipeline.sendMessage(c.getMessage(wrappedEvent), c.commandType, wrappedEvent);
-                        }else if(tc != null && tc.isUserAllowed(event)){
-                            this.messengerPipeline.sendMessage(TextCommandParser.parseCommand(tc.getMessage(wrappedEvent), wrappedEvent, cm.getChannelValues()),
-                                    tc.getCommandType(), wrappedEvent);
-                        }
+                        this.messengerPipeline.sendMessage(cO.get().getMessage(wrappedEvent), cO.get().commandType, wrappedEvent);
+                    }else if(tcO.isPresent() && tcO.get().isUserAllowed(event)){
+                        this.messengerPipeline.sendMessage(TextCommandParser.parseCommand(tcO.get().getMessage(wrappedEvent), wrappedEvent, cm.getChannelValues()),
+                                tcO.get().getCommandType(), wrappedEvent);
                     }
                 }
             } catch (Exception e) {
@@ -316,11 +269,12 @@ public class ListenerPipeline extends ListenerAdapter<PircBotX>{
 
     @Override
     public void onQuit(QuitEvent<PircBotX> event) throws Exception {
-        if(event.getUser().getNick().equals(event.getBot().getNick())){
-            channelManagers.keySet().parallelStream().forEach(cm -> {
-                if(getCommandManager(cm).getFilters() != null)
-                    getCommandManager(cm).getFilters().forEach(f -> f.onQuit(new WrappedEvent<>(event)));
-            });
+        if(event.getUser().getNick().equals(event.getBot().getNick())) {
+            @Cancelable BotQuitEvent qEvent = new BotQuitEvent(new EventContext(event.getBot(), server, null, event.getUser(), event));
+            getChannelManagers().forEach(cm -> cm.eventBus.post(qEvent));
+        }else{
+            @Cancelable UserQuitEvent qEvent = new UserQuitEvent(new EventContext(event.getBot(), server, null, event.getUser(), event));
+            getChannelManagers().forEach(cm -> cm.eventBus.post(qEvent));
         }
         super.onQuit(event);
     }

@@ -1,10 +1,10 @@
 package com.technostar98.tcbot.io;
 
+import api.lib.Configuration;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
-import api.lib.Configuration;
 import com.technostar98.tcbot.io.JSONadapters.ConfigDeserializer;
 import com.technostar98.tcbot.io.JSONadapters.ConfigSerializer;
 import com.technostar98.tcbot.lib.IJsonFileIO;

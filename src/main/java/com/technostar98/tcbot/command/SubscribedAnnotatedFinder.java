@@ -7,6 +7,7 @@ import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -114,7 +115,15 @@ public class SubscribedAnnotatedFinder implements SubscriberFindingStrategy {
     }
 
     @Override
-    public Multimap<Class<? extends Event>, EventSubscriber> findAllSubscribers(Object source) {
-        return null;
+    public Multimap<Class<? extends Event>, EventSubscriber> findAllSubscribers(Object listener) {
+        Multimap<Class<? extends Event>, EventSubscriber> methodsInListener = HashMultimap.create();
+        Class<?> clazz = listener.getClass();
+        for (Method method : getAnnotatedMethods((Class<? extends Event>)clazz)) {
+            Class<?>[] parameterTypes = method.getParameterTypes();
+            Class<? extends Event> eventType = (Class<? extends Event>)parameterTypes[0];
+            EventSubscriber subscriber = makeSubscriber(listener, method);
+            methodsInListener.put(eventType, subscriber);
+        }
+        return methodsInListener;
     }
 }

@@ -2,7 +2,7 @@ package com.technostar98.tcbot.command.commands;
 
 import api.command.Command;
 import api.command.CommandType;
-import api.command.ICommandManager;
+import api.command.ICommandFilterRegistry;
 import api.lib.WrappedEvent;
 import com.technostar98.tcbot.bot.BotManager;
 import com.technostar98.tcbot.bot.ListenerPipeline;
@@ -47,7 +47,20 @@ public class ModuleControllerCommand extends Command {
                 ChannelManager cm = lP.getChannelManager(event.getEvent().getChannel().getName());
 
                 for(File f : modules)
-                    if(f.getName().endsWith(".jar")) inDirectory.add(f.getName().substring(0, f.getName().indexOf(".jar")));
+                    if(f.getName().endsWith(".jar")) {
+                        String toChoose = "";
+                        String temp = f.getName().substring(0, f.getName().indexOf(".jar"));
+                        String[] temp1 = temp.split("-");
+                        for(String s : temp1){
+                            String[] temp2 = s.split("\\.");
+                            for(String s1 : temp2){
+                                if(s1.length() > toChoose.length() && !s1.equals("local") && !s1.matches("[0-9]+"))//Eliminate generic versioning info
+                                    toChoose = s1;
+                            }
+                        }
+
+                        inDirectory.add(toChoose);
+                    }
                 cm.getModules().forEach(m -> loadedJ.add(m));
 
                 return "Modules loaded are " + loadedJ.toString() + "; Available modules are " + inDirectory.toString();
@@ -55,7 +68,7 @@ public class ModuleControllerCommand extends Command {
                 String name = words[2];
                 ListenerPipeline lP = BotManager.getBotOutputPipe(this.getServer());
                 ChannelManager cm = lP.getChannelManager(event.getEvent().getChannel().getName());
-                final ICommandManager manager = api.command.CommandManager.commandManager.get();
+                final ICommandFilterRegistry manager = api.command.CommandManager.commandManager.get();
 
                 if(manager.loadModule(name, getServer(), event.getEvent().getChannel().getName())){
                     if(cm.isModuleLoaded(name))

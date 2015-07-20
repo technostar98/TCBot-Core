@@ -2,7 +2,7 @@ package com.technostar98.tcbot.command;
 
 import api.command.Command;
 import api.command.CommandManager;
-import api.command.ICommandManager;
+import api.command.ICommandFilterRegistry;
 import api.command.TextCommand;
 import api.filter.ChatFilter;
 import com.google.common.base.Optional;
@@ -47,7 +47,7 @@ public class ChannelManager {
         this.server = server;
         loadChannelData();
 
-        ICommandManager manager = CommandManager.commandManager.get();
+        ICommandFilterRegistry manager = CommandManager.commandManager.get();
         manager.getBaseCommands().forEach(c -> addCommand(c));
         manager.getBaseFilters().forEach(f -> addFilter(f));
 
@@ -132,7 +132,7 @@ public class ChannelManager {
     }
 
     public void addModule(String id){
-        ICommandManager manager = api.command.CommandManager.commandManager.get();
+        ICommandFilterRegistry manager = api.command.CommandManager.commandManager.get();
         Optional<Module> m = manager.getModule(id);
         if(m.isPresent()){
             manager.registerChannelModule(id, server, channel);
@@ -166,7 +166,7 @@ public class ChannelManager {
     }
 
     public void removeModule(String id){
-        ICommandManager manager = api.command.CommandManager.commandManager.get();
+        ICommandFilterRegistry manager = api.command.CommandManager.commandManager.get();
         Module m = manager.getModule(id).get();
 
         for(String key : m.getCommands()){
@@ -183,7 +183,7 @@ public class ChannelManager {
 
     public void removeRawModule(String id){
         modulesLoaded.remove(id);
-        ICommandManager manager = api.command.CommandManager.commandManager.get();
+        ICommandFilterRegistry manager = api.command.CommandManager.commandManager.get();
         manager.unregisterModule(id, server, channel);
     }
 
@@ -212,7 +212,7 @@ public class ChannelManager {
     }
 
     public boolean isFilterAvailable(String name){
-        ICommandManager manager = api.command.CommandManager.commandManager.get();
+        ICommandFilterRegistry manager = api.command.CommandManager.commandManager.get();
         return manager.getFilter(name) != null || modulesLoaded.stream().anyMatch(s -> manager.getModuleFilter(s, name) != null);
     }
 

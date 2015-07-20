@@ -5,7 +5,6 @@ import com.google.common.collect.Lists;
 import com.technostar98.tcbot.lib.config.Configs;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.net.URL;

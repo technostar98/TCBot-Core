@@ -1,10 +1,10 @@
 package com.technostar98.tcbot.io.JSONadapters;
 
+import api.lib.Configuration;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
-import api.lib.Configuration;
 
 import java.lang.reflect.Type;
 

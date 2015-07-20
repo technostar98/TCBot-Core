@@ -17,7 +17,7 @@ import java.util.Map;
  * @author Bret 'Horfius' Dusseault
  * @since 1.0
  */
-public interface ICommandManager {
+public interface ICommandFilterRegistry {
 
     /**
      * Returns a command based upon ID or name, checking the former before the latter
@@ -79,13 +79,6 @@ public interface ICommandManager {
     public Map<String, Module> getModulesS();
 
     /**
-     * Return all registered modules mapped out by their integer ids.
-     * @return mapped registry of modules
-     * @since 1.0
-     */
-    public Map<Integer, Module> getModules();
-
-    /**
      * <p>Checks if a command exists by string ID or name, preferring the former over the latter</p>
      * <p>Module command ids are prefaced with the {@code module_id + ':'}</p>
      * @param name ID or name
@@ -143,14 +136,6 @@ public interface ICommandManager {
     public Optional<Integer> getCommandID(String id);
 
     /**
-     * Attempt to get the integer id of a module using its string id.
-     * @param id
-     * @return The id matching the passed id, or {@link com.google.common.base.Optional#absent()} if not found.
-     * @since 1.0
-     */
-    public Optional<Integer> getModuleID(String id);
-
-    /**
      * Attempt to get the {@link java.lang.String} key of a module using its integer id.
      * @param id
      * @return The id of the filter registered with the passed integer id if present or null otherwise.
@@ -167,16 +152,8 @@ public interface ICommandManager {
     public Optional<String> getCommandSID(int id);
 
     /**
-     * Attempt to get the {@link java.lang.String} key of a module using its integer id.
-     * @param id
-     * @return The id of the filter registered with the passed integer id if present or null otherwise.
-     * @since 1.0
-     */
-    public Optional<String> getModuleSID(int id);
-
-    /**
      * Tries to load a module using its id.
-     * @param id The ID of the module, retrievable from name via {@link api.command.ICommandManager#getModuleSID(String)}
+     * @param id The ID of the module, retrievable from name via {@link ICommandFilterRegistry#getModuleSID(String)}
      * @param server Server the load call is originating.
      * @param channel Channel the load call is originating.
      * @return
@@ -212,7 +189,6 @@ public interface ICommandManager {
     public void registerChannelModule(String id, String server, String channel);
     public void unregisterCommand(int id);
     public void unregisterFilter(int id);
-    public void unregisterModule(int id, String server, String channel);
     public Optional<Command> getModuleCommand(String module, String id);
     public Optional<Command> getModuleCommand(String module, int id);
     public Optional<List<Command>> getModuleCommands(String moduleID);
@@ -226,7 +202,7 @@ public interface ICommandManager {
     public void unregisterModuleCommand(String module, String id);
     public void unregisterModuleFilter(String module, String id);
     public void refreshModule(String moduleID);
-    public boolean doesChannelContainModule(String id);
+    public boolean doesChannelContainModule(String id, String server, String channel);
     public Optional<List<String>> getChannelModules(String server, String channel);
     public Optional<Map<String, List<String>>> getChannelsWithModule(String id);
     public List<Command> getBaseCommands();

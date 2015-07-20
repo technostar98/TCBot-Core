@@ -10,5 +10,5 @@ package api.command;
  * @author Bret 'Horfius' Dusseault
  */
 public enum CommandType {
-    ACTION, USER_MESSAGE, JOIN, LEAVE, KICKED, KICK, GENERIC; //For managing hardcoded commands
+    ACTION, USER_MESSAGE, JOIN, LEAVE, KICKED, KICK, GENERIC //For managing hardcoded commands
 }

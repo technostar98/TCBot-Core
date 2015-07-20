@@ -1,7 +1,7 @@
 package com.technostar98.tcbot.modules;
 
 import api.command.CommandManager;
-import api.command.ICommandManager;
+import api.command.ICommandFilterRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +32,7 @@ public class Module {
         this.ID = id;
         this.version = version;
 
-        final ICommandManager manager = CommandManager.commandManager.get();
+        final ICommandFilterRegistry manager = CommandManager.commandManager.get();
         manager.getModuleCommands(id).get().forEach(c -> commands.add(c.ID));
         manager.getModuleFilters(id).get().forEach(f -> filters.add(f.ID));
     }

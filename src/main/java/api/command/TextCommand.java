@@ -21,13 +21,13 @@ public class TextCommand extends Command {
     private boolean usersAccepted = false;
 
     public TextCommand(String name, String server, UserLevel... uls){
-        super(name, CommandType.USER_MESSAGE, server, uls);
+        super(name, CommandType.USER_MESSAGE, server, name, uls);
         if(uls == null || uls.length == 0)
             this.usersAccepted = true;
     }
 
     public TextCommand(String name, String server, String message, UserLevel... uls){
-        super(name, CommandType.USER_MESSAGE, server, uls);
+        super(name, CommandType.USER_MESSAGE, server, name, uls);
         if(uls == null || uls.length == 0)
             this.usersAccepted = true;
         setMessage(message);

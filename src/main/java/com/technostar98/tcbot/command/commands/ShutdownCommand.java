@@ -1,9 +1,9 @@
 package com.technostar98.tcbot.command.commands;
 
-import com.technostar98.tcbot.bot.BotManager;
 import api.command.Command;
 import api.command.CommandType;
 import api.lib.WrappedEvent;
+import com.technostar98.tcbot.bot.BotManager;
 import org.pircbotx.PircBotX;
 import org.pircbotx.hooks.events.MessageEvent;
 

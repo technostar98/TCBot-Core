@@ -1,11 +1,11 @@
 package com.technostar98.tcbot.io;
 
+import api.command.TextCommand;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
-import api.command.TextCommand;
 import com.technostar98.tcbot.io.JSONadapters.CommandDeserializer;
 import com.technostar98.tcbot.io.JSONadapters.CommandSerializer;
 import com.technostar98.tcbot.lib.IJsonFileIO;

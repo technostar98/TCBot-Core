@@ -57,7 +57,7 @@ public class BotManager {
     }
 
     public static IRCBot getBot(String server){
-        return bots.getOrDefault(server, null);
+        return bots.get(addresses.inverse().get(server));
     }
 
     public static void start(){
@@ -82,6 +82,7 @@ public class BotManager {
                     @Override
                     protected void shutDown() throws Exception {
                         super.shutDown();
+                        /*System.out.println("Shutting down.");
                         bot.getBot().stopBotReconnect();
                         bot.getBot().sendIRC().quitServer("Adios");
                         getBotOutputPipe(server).messengerPipeline.setOutputEnabled(false);
@@ -92,7 +93,7 @@ public class BotManager {
                             e1.printStackTrace();
                         }
                         bot.getBot().getInputParser().close();
-                        bots.remove(server);
+                        bots.remove(server);*/
                     }
 
                     @Override
@@ -128,7 +129,7 @@ public class BotManager {
                 public void failure(Service service) {
                     super.failure(service);
                     try {
-                        IRCBot bot = (IRCBot)service.getClass().getField("bot").get(service);
+                        IRCBot bot = (IRCBot)service.getClass().getDeclaredField("bot").get(service);
                         Logger.info("Bot for server %s has failed to start.", bot.getServerConfiguration().getServerName());
                     } catch (NoSuchFieldException e) {
                         e.printStackTrace();
@@ -181,18 +182,22 @@ public class BotManager {
             try {
                 IRCBot bot = getBot(server);
 
-                if(bot != null){
-                    ListenerPipeline l = getBotOutputPipe(server);
-                    l.messengerPipeline.setOutputEnabled(false);
-                    l.closeListener();
-
-                    bot.getBot().stopBotReconnect();
-                    bot.getBot().sendIRC().quitServer("Bye bye...");
+                System.out.println("Shutting down.");
+                bot.getBot().stopBotReconnect();
+                bot.getBot().sendIRC().quitServer("Adios");
+                getBotOutputPipe(server).messengerPipeline.setOutputEnabled(false);
+                getBotOutputPipe(server).closeListener();
+                try {
                     Thread.sleep(50L);
-                    bot.getBot().getInputParser().close();
-
-                    bots.remove(server);
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
                 }
+                bot.getBot().getInputParser().close();
+                bots.remove(addresses.inverse().get(server));
+
+
+                if(bots.size() <= 0)
+                    manager.stopAsync();
 
                 scheduleDebuggerShutdown();
                 dataManager.interrupt();
@@ -248,7 +253,8 @@ public class BotManager {
     }
 
     public static ListenerPipeline getBotOutputPipe(String server){
-        List<Listener<PircBotX>> adapters = getBot(server).getBot().getConfiguration().getListenerManager().getListeners().asList();
+        IRCBot bot = bots.get(addresses.inverse().get(server));
+        List<Listener<PircBotX>> adapters = bot.getBot().getConfiguration().getListenerManager().getListeners().asList();
 
         for(Listener l : adapters){
             if(l instanceof ListenerPipeline) return (ListenerPipeline)l;

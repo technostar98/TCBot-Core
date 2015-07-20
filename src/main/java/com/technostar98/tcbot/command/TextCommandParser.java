@@ -2,10 +2,12 @@ package com.technostar98.tcbot.command;
 
 import api.lib.ValuePair;
 import api.lib.WrappedEvent;
+import com.technostar98.tcbot.lib.Value;
 import org.pircbotx.PircBotX;
 import org.pircbotx.hooks.events.MessageEvent;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -59,7 +61,7 @@ public class TextCommandParser {
         };
     }
 
-    public static String parseCommand(String message, WrappedEvent<MessageEvent<PircBotX>> event, HashMap<String, Object> channelValues){
+    public static String parseCommand(String message, WrappedEvent<MessageEvent<PircBotX>> event, Map<String, Value> channelValues){
         if(message.matches(".*(\\$\\{\\w+\\}).*")){
 
         }

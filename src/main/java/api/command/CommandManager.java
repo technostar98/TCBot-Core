@@ -14,5 +14,5 @@ import com.google.common.base.Optional;
 public enum  CommandManager {
     INSTANCE;
 
-    public static Optional<ICommandManager> commandManager = Optional.absent();
+    public static Optional<ICommandFilterRegistry> commandManager = Optional.absent();
 }

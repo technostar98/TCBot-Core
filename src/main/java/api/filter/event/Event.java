@@ -3,7 +3,7 @@ package api.filter.event;
 import com.google.common.base.Preconditions;
 import com.technostar98.tcbot.command.Cancelable;
 
-import java.lang.annotation.*;
+import java.lang.annotation.Annotation;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 

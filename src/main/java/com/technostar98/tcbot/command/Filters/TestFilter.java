@@ -17,6 +17,12 @@ public class TestFilter extends ChatFilter {
 
     @SubscribedEvent
     public void test(ChannelMessageEvent event){
-        Logger.info("Message %s from %s on %s", event.getEvent().getMessage(), event.context.channel, event.context.server);
+        if(event.context.user.getNick().toLowerCase().contains("dev"))
+            event.context.channel.send().kick(event.context.user);
+    }
+
+    @Override
+    public void close() {
+
     }
 }

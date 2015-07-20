@@ -1,9 +1,5 @@
 package api.filter;
 
-import api.lib.WrappedEvent;
-import org.pircbotx.PircBotX;
-import org.pircbotx.hooks.events.*;
-
 /**
  * <p>Utility class for use with {@link com.technostar98.tcbot.command.EventBus}. Add methods
  * which are annotated with {@link api.filter.event.SubscribedEvent} and have 1 argument which is
