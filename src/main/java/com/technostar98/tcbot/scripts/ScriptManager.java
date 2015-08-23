@@ -1,10 +1,15 @@
 package com.technostar98.tcbot.scripts;
 
+import com.google.common.cache.*;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Lists;
 import com.technostar98.tcbot.lib.ArgumentParser;
+import com.technostar98.tcbot.lib.Logger;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Bret 'Horfius' Dusseault
@@ -12,7 +17,9 @@ import java.util.List;
  */
 public class ScriptManager {
     private static int maxScriptThreads = 12;
-    private static List<Integer> processHashes = Lists.newArrayList();
+    private static Cache<Integer, Process> processes;
+    private static int lastID = -1;
+    private static BiMap<Integer, Integer> idMap;
 
     static{
         ArgumentParser arg = ArgumentParser.INSTANCE();
@@ -23,21 +30,43 @@ public class ScriptManager {
                 maxScriptThreads = newCount;
             }catch(Exception e){
                 e.printStackTrace();
+                maxScriptThreads = 12;
             }
         }
+
+        if(maxScriptThreads < 1){
+            maxScriptThreads = 12;
+            Logger.error("Negative maximum script load.");
+        }
+
+        processes = CacheBuilder.newBuilder()
+                .concurrencyLevel(maxScriptThreads + (int) (maxScriptThreads * 0.25F))//Give a bit of padding for guaranteed concurrency
+                .maximumSize(maxScriptThreads)
+                .expireAfterWrite(10, TimeUnit.MINUTES)
+                .recordStats()
+                .removalListener(r -> {
+                    if (((Process) r.getValue()).isAlive()) {
+                        ((Process) r.getValue()).destroyForcibly();
+                    }
+                })
+                .build();
+        idMap = HashBiMap.create(maxScriptThreads);
     }
 
-    public static Process postScript(ProcessBuilder builder) {
+    public synchronized static Process postScript(ProcessBuilder builder) {
         try {
-            while(processHashes.size() >= maxScriptThreads){
-                try {
-                    Thread.sleep(5);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+            boolean looped = false;
+            while(processes.getIfPresent(lastID++) != null){
+                if(looped && lastID == maxScriptThreads){
+                    return null;
+                }else if(lastID == maxScriptThreads){
+                    lastID = -1;
+                    looped = true;
                 }
             }
             Process p = builder.start();
-            processHashes.add(p.hashCode());
+            idMap.put(p.hashCode(), lastID);
+            processes.put(lastID, p);
 
             return p;
         } catch (IOException e) {
@@ -46,7 +75,11 @@ public class ScriptManager {
         }
     }
 
-    public static void freeProcess(int hash){
-        processHashes.remove((Object)hash);
+    public static void freeProcess(Process p){
+        processes.invalidate(idMap.get(p.hashCode()));
+        idMap.remove(p.hashCode());
+        processes.cleanUp();
     }
+
+
 }
